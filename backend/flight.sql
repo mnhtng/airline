@@ -159,6 +159,12 @@ CREATE TABLE flight_raw
     acregno NVARCHAR(50) NULL,                    -- Aircraft registration
     sheet_name NVARCHAR(255) NULL,                -- Excel sheet name
     int_dom NVARCHAR(10) NULL,                    -- Domestic/International flag
+    [Is_InvalidFlightDate] INT NULL,                -- Validation flags
+    [Is_InvalidPassengerCargo] INT NULL,           -- Validation flags
+    [Is_InvalidRoute] INT NULL,                    -- Validation flags
+    [Is_InvalidActypeSeat] INT NULL,               -- Validation flags
+    ErrorReason NVARCHAR(MAX) NULL,               -- Description of errors
+    TotalErrors INT NULL,                         -- Total error count
     created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
 );
 
@@ -1019,3 +1025,207 @@ GO
 -- Total Stored Procedures: 4
 -- Total Triggers: 3
 -- ===================================================================
+
+
+-- ===================================================================
+-- UPDATE TABLE
+-- ===================================================================
+
+-- 
+alter table Airport_Information 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE Airport_Information
+DROP COLUMN [index];
+GO
+
+ALTER TABLE Airport_Information
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table Airline_Route_Details 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE Airline_Route_Details
+DROP COLUMN [index];
+GO
+
+ALTER TABLE Airline_Route_Details
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table Region 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE Region
+DROP COLUMN [index];
+GO
+
+ALTER TABLE Region
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table Airline_Details 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE Airline_Details
+DROP COLUMN [index];
+GO
+
+ALTER TABLE Airline_Details
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table [Route] 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE [Route]
+DROP COLUMN [index];
+GO
+
+ALTER TABLE [Route]
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table actype_seat 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE actype_seat
+ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table seat_by_AC_type 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE seat_by_AC_type
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table flight_raw 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE flight_raw
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table flight_data_chot 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE flight_data_chot
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table flight_analyze 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE flight_analyze
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table qua_dem 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE qua_dem
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table error_table 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE error_table
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table flight_clean_data_stg 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE flight_clean_data_stg
+ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table import_log 
+add created_at datetime2 default SYSDATETIME() not null,
+    updated_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE import_log
+DROP COLUMN [id];
+GO
+
+ALTER TABLE import_log
+ADD [id] INT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table Missing_Dimensions_Log 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE Missing_Dimensions_Log
+DROP COLUMN [ID];
+GO
+
+ALTER TABLE Missing_Dimensions_Log
+ADD [ID] INT IDENTITY(1,1) PRIMARY KEY;
+GO
+
+-- 
+alter table TempActypeImport 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE TempActypeImport
+DROP COLUMN [Actype];
+GO
+
+ALTER TABLE TempActypeImport
+ADD [Actype] NVARCHAR(255) PRIMARY KEY;
+GO
+
+-- 
+alter table TempRouteImport 
+add created_at datetime2 default SYSDATETIME() not null
+GO
+
+ALTER TABLE TempRouteImport
+DROP COLUMN [Route];
+GO
+
+ALTER TABLE TempRouteImport
+ADD [Route] NVARCHAR(255) PRIMARY KEY;
+GO

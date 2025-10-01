@@ -38,6 +38,20 @@ class FlightRawBase(BaseModel):
     int_dom: Optional[str] = Field(
         None, max_length=10, description="Cờ Domestic/International"
     )
+    is_invalid_flightdate: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của ngày bay"
+    )
+    is_invalid_passenger_cargo: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của hành khách và hàng hóa"
+    )
+    is_invalid_route: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của tuyến bay"
+    )
+    is_invalid_actype_seat: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của loại máy bay và sức chứa ghế"
+    )
+    error_reason: Optional[str] = Field(None, description="Mô tả lỗi nếu có")
+    total_errors: Optional[int] = Field(None, description="Tổng số lỗi phát hiện")
 
     @field_validator("int_dom")
     def validate_int_dom(cls, v):
@@ -46,6 +60,25 @@ class FlightRawBase(BaseModel):
             v = v.upper().strip()
             if v and v not in ["DOM", "INT"]:
                 raise ValueError("int_dom phải là 'DOM' hoặc 'INT'")
+        return v
+
+    @field_validator(
+        "is_invalid_flightdate",
+        "is_invalid_passenger_cargo",
+        "is_invalid_route",
+        "is_invalid_actype_seat",
+    )
+    def validate_validation_flags(cls, v):
+        """Validate validation flags (should be 0 or 1)"""
+        if v is not None and v not in [0, 1]:
+            raise ValueError("Validation flags phải là 0 hoặc 1")
+        return v
+
+    @field_validator("total_errors")
+    def validate_total_errors(cls, v):
+        """Validate total errors count"""
+        if v is not None and v < 0:
+            raise ValueError("total_errors phải >= 0")
         return v
 
 
@@ -80,6 +113,20 @@ class FlightRawUpdate(BaseModel):
     int_dom: Optional[str] = Field(
         None, max_length=10, description="Domestic/International"
     )
+    is_invalid_flightdate: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của ngày bay"
+    )
+    is_invalid_passenger_cargo: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của hành khách và hàng hóa"
+    )
+    is_invalid_route: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của tuyến bay"
+    )
+    is_invalid_actype_seat: Optional[int] = Field(
+        None, description="Cờ kiểm tra tính hợp lệ của loại máy bay và sức chứa ghế"
+    )
+    error_reason: Optional[str] = Field(None, description="Mô tả lỗi nếu có")
+    total_errors: Optional[int] = Field(None, description="Tổng số lỗi phát hiện")
 
 
 class FlightRawInDB(FlightRawBase):
