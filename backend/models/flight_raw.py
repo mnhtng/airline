@@ -2,7 +2,6 @@ from sqlalchemy import INT, NVARCHAR, Column, BigInteger, String, Float, DateTim
 from sqlalchemy.sql import func
 
 from backend.db.database import Base
-from tkinter.tix import MAX
 
 
 class FlightRaw(Base):
@@ -76,7 +75,7 @@ class FlightRaw(Base):
         "Is_InvalidActypeSeat", BigInteger, nullable=True, comment="Validation flags"
     )
     error_reason = Column(
-        "ErrorReason", NVARCHAR(MAX), nullable=True, comment="Description of errors"
+        "ErrorReason", NVARCHAR(1000), nullable=True, comment="Description of errors"
     )
     total_errors = Column(
         "TotalErrors", INT, nullable=True, comment="Total error count"

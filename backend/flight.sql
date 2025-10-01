@@ -1031,201 +1031,269 @@ GO
 -- UPDATE TABLE
 -- ===================================================================
 
--- 
-alter table Airport_Information 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+/* ===================== Airport_Information ===================== */
+IF COL_LENGTH('Airport_Information', 'created_at') IS NULL
+    ALTER TABLE Airport_Information ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE Airport_Information
-DROP COLUMN [index];
-GO
+IF COL_LENGTH('Airport_Information', 'updated_at') IS NULL
+    ALTER TABLE Airport_Information ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE Airport_Information
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'ix_Airport_Information_index' 
+      AND object_id = OBJECT_ID('Airport_Information')
+)
+    DROP INDEX ix_Airport_Information_index ON Airport_Information;
 
--- 
-alter table Airline_Route_Details 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF COL_LENGTH('Airport_Information', 'index') IS NULL
+    ALTER TABLE Airport_Information ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE Airline_Route_Details
-DROP COLUMN [index];
-GO
 
-ALTER TABLE Airline_Route_Details
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+/* ===================== Airline_Route_Details ===================== */
+IF COL_LENGTH('Airline_Route_Details', 'created_at') IS NULL
+    ALTER TABLE Airline_Route_Details ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table Region 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF COL_LENGTH('Airline_Route_Details', 'updated_at') IS NULL
+    ALTER TABLE Airline_Route_Details ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE Region
-DROP COLUMN [index];
-GO
+IF EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'ix_Airline_Route_Details_index' 
+      AND object_id = OBJECT_ID('Airline_Route_Details')
+)
+    DROP INDEX ix_Airline_Route_Details_index ON Airline_Route_Details;
 
-ALTER TABLE Region
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('Airline_Route_Details', 'index') IS NULL
+    ALTER TABLE Airline_Route_Details ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
--- 
-alter table Airline_Details 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
 
-ALTER TABLE Airline_Details
-DROP COLUMN [index];
-GO
+/* ===================== Region ===================== */
+IF COL_LENGTH('Region', 'created_at') IS NULL
+    ALTER TABLE Region ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE Airline_Details
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('Region', 'updated_at') IS NULL
+    ALTER TABLE Region ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table [Route] 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'ix_Region_index' 
+      AND object_id = OBJECT_ID('Region')
+)
+    DROP INDEX ix_Region_index ON Region;
 
-ALTER TABLE [Route]
-DROP COLUMN [index];
-GO
+IF COL_LENGTH('Region', 'index') IS NULL
+    ALTER TABLE Region ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE [Route]
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
 
--- 
-alter table actype_seat 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+/* ===================== Airline_Details ===================== */
+IF COL_LENGTH('Airline_Details', 'created_at') IS NULL
+    ALTER TABLE Airline_Details ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE actype_seat
-ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('Airline_Details', 'updated_at') IS NULL
+    ALTER TABLE Airline_Details ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table seat_by_AC_type 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'ix_Airline_Details_index' 
+      AND object_id = OBJECT_ID('Airline_Details')
+)
+    DROP INDEX ix_Airline_Details_index ON Airline_Details;
 
-ALTER TABLE seat_by_AC_type
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('Airline_Details', 'index') IS NULL
+    ALTER TABLE Airline_Details ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
--- 
-alter table flight_raw 
-add created_at datetime2 default SYSDATETIME() not null
-GO
 
-ALTER TABLE flight_raw
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+/* ===================== Route ===================== */
+IF COL_LENGTH('Route', 'created_at') IS NULL
+    ALTER TABLE [Route] ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table flight_data_chot 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF COL_LENGTH('Route', 'updated_at') IS NULL
+    ALTER TABLE [Route] ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE flight_data_chot
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF EXISTS (
+    SELECT 1 FROM sys.indexes 
+    WHERE name = 'ix_Route_index' 
+      AND object_id = OBJECT_ID('Route')
+)
+    DROP INDEX ix_Route_index ON [Route];
 
--- 
-alter table flight_analyze 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+IF COL_LENGTH('Route', 'index') IS NULL
+    ALTER TABLE [Route] ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE flight_analyze
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
 
--- 
-alter table qua_dem 
-add created_at datetime2 default SYSDATETIME() not null
-GO
+/* ===================== actype_seat ===================== */
+IF COL_LENGTH('actype_seat', 'created_at') IS NULL
+    ALTER TABLE actype_seat ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE qua_dem
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('actype_seat', 'updated_at') IS NULL
+    ALTER TABLE actype_seat ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table error_table 
-add created_at datetime2 default SYSDATETIME() not null
-GO
+IF COL_LENGTH('actype_seat', 'index') IS NULL
+    ALTER TABLE actype_seat ADD [index] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE error_table
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
 
--- 
-alter table flight_clean_data_stg 
-add created_at datetime2 default SYSDATETIME() not null
-GO
+/* ===================== seat_by_AC_type ===================== */
+IF COL_LENGTH('seat_by_AC_type', 'created_at') IS NULL
+    ALTER TABLE seat_by_AC_type ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE flight_clean_data_stg
-ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('seat_by_AC_type', 'updated_at') IS NULL
+    ALTER TABLE seat_by_AC_type ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table import_log 
-add created_at datetime2 default SYSDATETIME() not null,
-    updated_at datetime2 default SYSDATETIME() not null
-GO
+DECLARE @pk1 NVARCHAR(200);
+SELECT @pk1 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('seat_by_AC_type') AND type = 'PK';
+IF @pk1 IS NOT NULL EXEC('ALTER TABLE seat_by_AC_type DROP CONSTRAINT ' + @pk1);
 
-ALTER TABLE import_log
-DROP COLUMN [id];
-GO
+IF COL_LENGTH('seat_by_AC_type', 'id') IS NULL
+    ALTER TABLE seat_by_AC_type ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE import_log
-ADD [id] INT IDENTITY(1,1) PRIMARY KEY;
-GO
 
--- 
-alter table Missing_Dimensions_Log 
-add created_at datetime2 default SYSDATETIME() not null
-GO
+/* ===================== flight_raw ===================== */
+IF COL_LENGTH('flight_raw', 'created_at') IS NULL
+    ALTER TABLE flight_raw ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE Missing_Dimensions_Log
-DROP COLUMN [ID];
-GO
+DECLARE @pk2 NVARCHAR(200);
+SELECT @pk2 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('flight_raw') AND type = 'PK';
+IF @pk2 IS NOT NULL EXEC('ALTER TABLE flight_raw DROP CONSTRAINT ' + @pk2);
 
-ALTER TABLE Missing_Dimensions_Log
-ADD [ID] INT IDENTITY(1,1) PRIMARY KEY;
-GO
+IF COL_LENGTH('flight_raw', 'id') IS NULL
+    ALTER TABLE flight_raw ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
--- 
-alter table TempActypeImport 
-add created_at datetime2 default SYSDATETIME() not null
-GO
 
-ALTER TABLE TempActypeImport
-DROP COLUMN [Actype];
-GO
+/* ===================== flight_data_chot ===================== */
+IF COL_LENGTH('flight_data_chot', 'created_at') IS NULL
+    ALTER TABLE flight_data_chot ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
-ALTER TABLE TempActypeImport
-ADD [Actype] NVARCHAR(255) PRIMARY KEY;
-GO
+IF COL_LENGTH('flight_data_chot', 'updated_at') IS NULL
+    ALTER TABLE flight_data_chot ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
 
--- 
-alter table TempRouteImport 
-add created_at datetime2 default SYSDATETIME() not null
-GO
+DECLARE @pk3 NVARCHAR(200);
+SELECT @pk3 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('flight_data_chot') AND type = 'PK';
+IF @pk3 IS NOT NULL EXEC('ALTER TABLE flight_data_chot DROP CONSTRAINT ' + @pk3);
 
-ALTER TABLE TempRouteImport
-DROP COLUMN [Route];
-GO
+IF COL_LENGTH('flight_data_chot', 'id') IS NULL
+    ALTER TABLE flight_data_chot ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
 
-ALTER TABLE TempRouteImport
-ADD [Route] NVARCHAR(255) PRIMARY KEY;
-GO
+
+/* ===================== flight_analyze ===================== */
+IF COL_LENGTH('flight_analyze', 'created_at') IS NULL
+    ALTER TABLE flight_analyze ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+IF COL_LENGTH('flight_analyze', 'updated_at') IS NULL
+    ALTER TABLE flight_analyze ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk4 NVARCHAR(200);
+SELECT @pk4 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('flight_analyze') AND type = 'PK';
+IF @pk4 IS NOT NULL EXEC('ALTER TABLE flight_analyze DROP CONSTRAINT ' + @pk4);
+
+IF COL_LENGTH('flight_analyze', 'id') IS NULL
+    ALTER TABLE flight_analyze ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== qua_dem ===================== */
+IF COL_LENGTH('qua_dem', 'created_at') IS NULL
+    ALTER TABLE qua_dem ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk5 NVARCHAR(200);
+SELECT @pk5 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('qua_dem') AND type = 'PK';
+IF @pk5 IS NOT NULL EXEC('ALTER TABLE qua_dem DROP CONSTRAINT ' + @pk5);
+
+IF COL_LENGTH('qua_dem', 'id') IS NULL
+    ALTER TABLE qua_dem ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== error_table ===================== */
+IF COL_LENGTH('error_table', 'created_at') IS NULL
+    ALTER TABLE error_table ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk6 NVARCHAR(200);
+SELECT @pk6 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('error_table') AND type = 'PK';
+IF @pk6 IS NOT NULL EXEC('ALTER TABLE error_table DROP CONSTRAINT ' + @pk6);
+
+IF COL_LENGTH('error_table', 'id') IS NULL
+    ALTER TABLE error_table ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== flight_clean_data_stg ===================== */
+IF COL_LENGTH('flight_clean_data_stg', 'created_at') IS NULL
+    ALTER TABLE flight_clean_data_stg ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk7 NVARCHAR(200);
+SELECT @pk7 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('flight_clean_data_stg') AND type = 'PK';
+IF @pk7 IS NOT NULL EXEC('ALTER TABLE flight_clean_data_stg DROP CONSTRAINT ' + @pk7);
+
+IF COL_LENGTH('flight_clean_data_stg', 'id') IS NULL
+    ALTER TABLE flight_clean_data_stg ADD [id] BIGINT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== import_log ===================== */
+IF COL_LENGTH('import_log', 'created_at') IS NULL
+    ALTER TABLE import_log ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+IF COL_LENGTH('import_log', 'updated_at') IS NULL
+    ALTER TABLE import_log ADD updated_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk8 NVARCHAR(200);
+SELECT @pk8 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('import_log') AND type = 'PK';
+IF @pk8 IS NOT NULL EXEC('ALTER TABLE import_log DROP CONSTRAINT ' + @pk8);
+
+IF COL_LENGTH('import_log', 'id') IS NOT NULL
+    ALTER TABLE import_log DROP COLUMN id;
+
+IF COL_LENGTH('import_log', 'id') IS NULL
+    ALTER TABLE import_log ADD [id] INT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== Missing_Dimensions_Log ===================== */
+IF COL_LENGTH('Missing_Dimensions_Log', 'created_at') IS NULL
+    ALTER TABLE Missing_Dimensions_Log ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk9 NVARCHAR(200);
+SELECT @pk9 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('Missing_Dimensions_Log') AND type = 'PK';
+IF @pk9 IS NOT NULL EXEC('ALTER TABLE Missing_Dimensions_Log DROP CONSTRAINT ' + @pk9);
+
+IF COL_LENGTH('Missing_Dimensions_Log', 'ID') IS NOT NULL
+    ALTER TABLE Missing_Dimensions_Log DROP COLUMN [ID];
+
+IF COL_LENGTH('Missing_Dimensions_Log', 'ID') IS NULL
+    ALTER TABLE Missing_Dimensions_Log ADD [ID] INT IDENTITY(1,1) PRIMARY KEY;
+
+
+/* ===================== TempActypeImport ===================== */
+IF COL_LENGTH('TempActypeImport', 'created_at') IS NULL
+    ALTER TABLE TempActypeImport ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk10 NVARCHAR(200);
+SELECT @pk10 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('TempActypeImport') AND type = 'PK';
+IF @pk10 IS NOT NULL EXEC('ALTER TABLE TempActypeImport DROP CONSTRAINT ' + @pk10);
+
+IF COL_LENGTH('TempActypeImport', 'Actype') IS NOT NULL
+    ALTER TABLE TempActypeImport DROP COLUMN [Actype];
+
+IF COL_LENGTH('TempActypeImport', 'Actype') IS NULL
+    ALTER TABLE TempActypeImport ADD [Actype] NVARCHAR(255) PRIMARY KEY;
+
+
+/* ===================== TempRouteImport ===================== */
+IF COL_LENGTH('TempRouteImport', 'created_at') IS NULL
+    ALTER TABLE TempRouteImport ADD created_at datetime2 DEFAULT SYSDATETIME() NOT NULL;
+
+DECLARE @pk11 NVARCHAR(200);
+SELECT @pk11 = name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('TempRouteImport') AND type = 'PK';
+IF @pk11 IS NOT NULL EXEC('ALTER TABLE TempRouteImport DROP CONSTRAINT ' + @pk11);
+
+IF COL_LENGTH('TempRouteImport', 'Route') IS NOT NULL
+    ALTER TABLE TempRouteImport DROP COLUMN [Route];
+
+IF COL_LENGTH('TempRouteImport', 'Route') IS NULL
+    ALTER TABLE TempRouteImport ADD [Route] NVARCHAR(255) PRIMARY KEY;
