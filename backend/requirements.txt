@@ -1,15 +1,15 @@
-fastapi[standard]       # Web framework for building APIs
-uvicorn                 # ASGI server for serving FastAPI applications
-pydantic                # Data validation and settings management
-pydantic_settings       # Settings management using Pydantic
-sqlalchemy              # SQL toolkit and Object-Relational Mapping (ORM) system
-pyodbc                  # Python ODBC bridge
-langchain               # Framework for developing applications powered by language models
-langchain-openai        # Langchain integration with OpenAI
-python-dotenv           # Library for managing environment variables
-sqlmodel                # sqlalchemy + pydantic
-pandas                  # Data manipulation and analysis library
-openpyxl                # Library to read/write Excel 2010 xlsx/xlsm/xltx/xltm files
-xlrd                    # Library to extract data from Microsoft Excel (tm) spreadsheet files
-requests                # HTTP library for making requests (used in test_data_pipeline.py)
-python-multipart        # Multipart/form-data for file uploads
+fastapi[standard]==0.116.1          # Web framework for building APIs
+langchain==0.3.27                   # Framework for developing applications powered by language models
+langchain-openai==0.3.33            # Langchain integration with OpenAI
+openpyxl==3.1.5                     # Library to read/write Excel 2010 xlsx/xlsm/xltx/xltm files
+pandas==2.3.2                       # Data manipulation and analysis library
+pydantic==2.11.7                    # Data validation and settings management
+pydantic-settings==2.10.1           # Settings management using Pydantic
+pyodbc==5.2.0                       # Python ODBC bridge
+python-dotenv==1.1.1                # Library for managing environment variables
+python-multipart==0.0.20            # Multipart/form-data for file uploads
+requests==2.32.5                    # HTTP library for making requests (used in test_data_pipeline.py)
+sqlalchemy==2.0.43                  # SQL toolkit and Object-Relational Mapping (ORM) system
+sqlmodel==0.0.25                    # SQLAlchemy + Pydantic
+uvicorn==0.35.0                     # ASGI server for serving FastAPI applications
+xlrd==2.0.2                         # Library to extract data from Microsoft Excel (tm) spreadsheet files

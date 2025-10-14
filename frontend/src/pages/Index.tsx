@@ -13,7 +13,6 @@ import {
     Folder
 } from "lucide-react"
 import { useState, useRef } from "react"
-import * as XLSX from "xlsx"
 import { toast } from "sonner"
 
 interface ExcelFile {
@@ -179,8 +178,9 @@ const Index = () => {
             const reader = new FileReader()
 
             // Callback function after reading the file
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
+                    const XLSX = await import("xlsx")
                     const data = new Uint8Array(e.target?.result as ArrayBuffer)
                     const workbook = XLSX.read(data, { type: 'array' })
                     const sheetName = workbook.SheetNames[0]
@@ -502,7 +502,7 @@ const Index = () => {
                             <Plane className="h-8 w-8 text-primary-foreground" />
                         </div>
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                            Vina Entry Hub
+                            Sun Phu Quoc Airways
                         </h1>
                     </div>
 

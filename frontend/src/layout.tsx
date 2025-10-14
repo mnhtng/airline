@@ -19,13 +19,15 @@ const Layout = ({ children }: LayoutProps) => {
 
     return (
         <div className="min-h-screen bg-background">
-            <header className="sky-gradient border-b border-border/20 shadow-lg sticky top-0 z-100 md:static">
+            <header className="der-b border-border/20 shadow-lg sticky top-0 z-100 md:static" style={{
+                background: 'linear-gradient(135deg, #ffc20f, #ffc20f22)',
+            }}>
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
-                        <Link to="/" className="flex items-center space-x-3">
-                            <Plane className="h-8 w-8 text-primary-foreground" />
-                            <h1 className="text-2xl font-bold text-primary-foreground hidden sm:inline">
-                                Vina Entry Hub
+                        <Link to="/" className="flex items-center space-x-3 text-black">
+                            <img src="src/assets/images/logo.png" alt="Logo" className="h-15 w-15 rounded-full" />
+                            <h1 className="text-2xl font-bold hidden md:inline">
+                                Sun Phu Quoc Airways
                             </h1>
                         </Link>
 
