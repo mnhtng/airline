@@ -25,7 +25,7 @@ const Layout = ({ children }: LayoutProps) => {
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <Link to="/" className="flex items-center space-x-3 text-black">
-                            <img src="src/assets/images/logo.png" alt="Logo" className="h-15 w-15 rounded-full" />
+                            <img src="/app.png" alt="Logo" className="h-15 w-15 rounded-full" />
                             <h1 className="text-2xl font-bold hidden md:inline">
                                 Sun Phu Quoc Airways
                             </h1>

@@ -53,6 +53,7 @@ Có thể thay thế thao tác thủ công trên với `uv install`
 6. Run:
     - `uv run main.py`: Sửa path thành `localhost:port` thành vì 0.0.0.0
     - `fastapi dev main.py`: Sử dụng Server path của FastAPI cung cấp
+    - `fastapi run main.py`: Sử dụng trong production
 
 # 🖊️ Note
 
