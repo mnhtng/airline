@@ -21,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
       ...(env.VITE_DEBUG === 'true' && {
         // Enable debugging options
         cors: true, // Enable CORS for development
-        open: true, // Open the browser on server start
+        open: false, // Open the browser on server start
         strictPort: true, // Exit if the port is already in use
         hmr: {
           overlay: false, // Disable the error overlay
