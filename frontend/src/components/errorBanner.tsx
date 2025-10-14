@@ -39,7 +39,7 @@ export default function ErrorBanner({
             </div>
 
             <img
-                src="src/assets/images/error.png"
+                src="/error.png"
                 alt="Error"
                 width={150}
                 height={150}
