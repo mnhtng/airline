@@ -18,6 +18,9 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     server: {
+      allowedHosts: ['localhost', '.ngrok-free.app', 'airline-gamma.vercel.app'],
+      host: true, // Listen on all addresses, including LAN and public IPs
+      port: 5173,
       ...(env.VITE_DEBUG === 'true' && {
         // Enable debugging options
         cors: true, // Enable CORS for development

@@ -55,7 +55,7 @@ app.include_router(data_processing_router, prefix=api_prefix)
 
 
 # Routes
-@app.get("/")
+@app.get(f"{api_prefix}/")
 def read_root():
     return {"message": "Welcome to the Airline API!"}
 
