@@ -2,15 +2,22 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-
 from backend.core.config import settings
 from backend.core.exception import validation_exception_handler
 from backend.db.database import create_tables
-from backend.routes.route import router as route_router
-from backend.routes.temp_route_import import router as temp_route_router
 from backend.routes.actype_seat import router as actype_seat_router
 from backend.routes.temp_actype_import import router as temp_actype_router
 from backend.routes.data_processing import router as data_processing_router
+from backend.routes.airline_ref import router as airline_ref_router
+from backend.routes.dim_airline_ref import router as dim_airline_ref_router
+from backend.routes.airport_ref import router as airport_ref_router
+from backend.routes.dim_airport_ref import router as dim_airport_ref_router
+from backend.routes.country_ref import router as country_ref_router
+from backend.routes.dim_country_ref import router as dim_country_ref_router
+from backend.routes.sector_route_dom_ref import router as sector_route_dom_ref_router
+from backend.routes.dim_sector_route_dom_ref import (
+    router as dim_sector_route_dom_ref_router,
+)
 
 
 create_tables()
@@ -47,10 +54,16 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 # Include routers
 api_prefix = settings.API_PREFIX
 
-app.include_router(route_router, prefix=api_prefix)
-app.include_router(temp_route_router, prefix=api_prefix)
 app.include_router(actype_seat_router, prefix=api_prefix)
 app.include_router(temp_actype_router, prefix=api_prefix)
+app.include_router(airline_ref_router, prefix=api_prefix)
+app.include_router(dim_airline_ref_router, prefix=api_prefix)
+app.include_router(airport_ref_router, prefix=api_prefix)
+app.include_router(dim_airport_ref_router, prefix=api_prefix)
+app.include_router(country_ref_router, prefix=api_prefix)
+app.include_router(dim_country_ref_router, prefix=api_prefix)
+app.include_router(sector_route_dom_ref_router, prefix=api_prefix)
+app.include_router(dim_sector_route_dom_ref_router, prefix=api_prefix)
 app.include_router(data_processing_router, prefix=api_prefix)
 
 

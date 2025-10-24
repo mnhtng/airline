@@ -29,34 +29,42 @@ import { FieldGroup } from "@/components/ui/field"
 import { AsiaButton } from "@/components/ui/asia-button"
 import { format } from "date-fns"
 
-interface AircraftProps {
-    index: number
-    actype: string
-    seat: number
+interface CountryProps {
+    id: number
+    country: string
+    region: string
+    region_vnm: string
+    two_letter_code: string
+    three_letter_code: string
     created_at: string
     updated_at: string
 }
 
-interface AircraftDraftProps {
-    actype: string
-    seat?: number
-    created_at: string
+interface CountryDraftProps {
+    id: number
+    country?: string
+    region?: string
+    region_vnm?: string
+    two_letter_code?: string
+    three_letter_code?: string
+    created_at?: string
+    updated_at?: string
 }
 
-const Aircraft = () => {
+const Country = () => {
     const navigate = useNavigate()
 
-    const [data, setData] = useState<AircraftDraftProps[]>([])
-    const [exportData, setExportData] = useState<AircraftProps[]>([])
+    const [data, setData] = useState<CountryDraftProps[]>([])
+    const [exportData, setExportData] = useState<CountryProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [edit, setEdit] = useState<boolean>(false)
 
-    async function getAircrafts() {
+    async function getCountries() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/actype-seats`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/countries`)
             const result = await response.json()
 
             setExportData(result)
@@ -68,11 +76,11 @@ const Aircraft = () => {
         }
     }
 
-    async function getAircraftDrafts() {
+    async function getCountryDrafts() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/temp-actype-import`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/dim-countries`)
             const result = await response.json()
 
             setData(result)
@@ -85,13 +93,13 @@ const Aircraft = () => {
     }
 
     useEffect(() => {
-        getAircraftDrafts()
-        getAircrafts()
+        getCountryDrafts()
+        getCountries()
     }, [])
 
-    const updateRow = (actype: string, field: keyof AircraftDraftProps, value: string | number) => {
+    const updateRow = (id: number, field: keyof CountryDraftProps, value: string | number) => {
         setData((prev) => prev.map((row) => {
-            return row.actype === actype ? { ...row, [field]: value } : row;
+            return row.id === id ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
     }
@@ -99,31 +107,40 @@ const Aircraft = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.actype &&
-            row.actype.trim() !== '' &&
-            row.seat &&
-            row.seat > 0
+            row.country &&
+            row.country.trim() !== '' &&
+            row.region &&
+            row.region.trim() !== '' &&
+            row.region_vnm &&
+            row.region_vnm.trim() !== '' &&
+            row.two_letter_code &&
+            row.two_letter_code.trim() !== '' &&
+            row.three_letter_code &&
+            row.three_letter_code.trim() !== ''
         )
 
         if (validData.length === 0) {
             toast.error("Không có dữ liệu hợp lệ để lưu!", {
-                description: "Vui lòng nhập ít nhất một máy bay với thông tin đầy đủ.",
+                description: "Vui lòng nhập ít nhất một quốc gia với thông tin đầy đủ.",
             })
             return
         }
 
         const processedData = validData.map(row => ({
-            actype: row.actype.trim(),
-            seat: row.seat
+            country: row.country?.trim(),
+            region: row.region?.trim(),
+            region_vnm: row.region_vnm?.trim(),
+            two_letter_code: row.two_letter_code?.trim(),
+            three_letter_code: row.three_letter_code?.trim(),
         }))
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/actype-seats/bulk-create`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/countries/bulk-create`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ actype_seats: processedData })
+                body: JSON.stringify({ country_refs: processedData })
             })
 
             if (!response.ok) {
@@ -137,8 +154,8 @@ const Aircraft = () => {
             setEdit(false)
             setLoading(false)
             setError(null)
-            getAircraftDrafts()
-            toast.success("Dữ liệu máy bay đã được lưu thành công!", {
+            getCountryDrafts()
+            toast.success("Dữ liệu quốc gia đã được lưu thành công!", {
                 description: "Tất cả thông tin đã được cập nhật trong cơ sở dữ liệu."
             })
         } catch (error) {
@@ -193,8 +210,8 @@ const Aircraft = () => {
         start.setHours(0, 0, 0, 0)
         end.setHours(23, 59, 59, 999)
 
-        const filteredData = exportData.filter(aircraft => {
-            const updateDate = aircraft.updated_at ? new Date(aircraft.updated_at) : new Date(aircraft.created_at);
+        const filteredData = exportData.filter(country => {
+            const updateDate = country.updated_at ? new Date(country.updated_at) : new Date(country.created_at);
             return updateDate >= start && updateDate <= end;
         })
 
@@ -206,25 +223,28 @@ const Aircraft = () => {
         }
 
         import("xlsx").then((XLSX) => {
-            const excelData = filteredData.map(aircraft => ({
-                Index: aircraft.index,
-                "Aircraft Type": aircraft.actype,
-                Seats: aircraft.seat,
-                "Created At": format(new Date(aircraft.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": aircraft.updated_at ? format(new Date(aircraft.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            const excelData = filteredData.map(country => ({
+                Id: country.id,
+                "Country": country.country,
+                "Region": country.region,
+                "Region VNM": country.region_vnm,
+                "Two Letter Code": country.two_letter_code,
+                "Three Letter Code": country.three_letter_code,
+                "Created At": format(new Date(country.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Updated At": country.updated_at ? format(new Date(country.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
             const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, "Aircrafts")
+            XLSX.utils.book_append_sheet(wb, ws, "Countries")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `countries_${format(start, "dd-MM-yyyy")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `countries_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }
@@ -291,61 +311,95 @@ const Aircraft = () => {
                             <thead>
                                 <tr className="border-b border-slate-400 bg-slate-300/30 dark:bg-slate-800/50">
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Mã Máy Bay
+                                        Quốc Gia
                                     </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[80px]">
-                                        Số Ghế
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Khu Vực
+                                    </th>
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Khu Vực Tiếng Việt
+                                    </th>
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Mã 2 Ký Tự
+                                    </th>
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Mã 3 Ký Tự
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={2} className="py-6 text-center">
+                                        <td colSpan={5} className="py-6 text-center">
                                             <Loading />
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={2}>
+                                        <td colSpan={5}>
                                             <ErrorBanner
                                                 title={error}
                                                 description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại."
-                                                retry={() => getAircraftDrafts()}
+                                                retry={() => getCountryDrafts()}
                                             />
                                         </td>
                                     </tr>
                                 ) : data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={2} className="p-3 text-center text-slate-500">
+                                        <td colSpan={5} className="p-3 text-center text-slate-500">
                                             Không có dữ liệu
                                         </td>
                                     </tr>
                                 ) : data.map((row, index) => (
                                     <tr
-                                        key={row.actype}
+                                        key={row.id}
                                         className={`border-b border-slate-200/40 dark:border-slate-700/40 hover:bg-sky-200/35 dark:hover:bg-sky-800/30 transition-all duration-200 group ${index % 2 === 0 ? "bg-white/40 dark:bg-slate-900/40" : "bg-slate-50/20 dark:bg-slate-800/20"
                                             }`}
                                     >
                                         <td className="p-3">
                                             <Input
-                                                value={row.actype}
-                                                onChange={(e) => updateRow(row.actype, "actype", e.target.value.toUpperCase())}
+                                                value={row.country}
+                                                onChange={(e) => updateRow(row.id, "country", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: VN-A123"
+                                                placeholder="VD: Việt Nam"
                                                 tabIndex={-1}
                                             />
                                         </td>
                                         <td className="p-3">
                                             <Input
-                                                type="number"
-                                                min={1}
-                                                value={row.seat || ''}
-                                                onChange={(e) => updateRow(row.actype, "seat", parseInt(e.target.value) || 0)}
+                                                value={row.region || ''}
+                                                onChange={(e) => updateRow(row.id, "region", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: 180"
+                                                placeholder="VD: Asia"
+                                            />
+                                        </td>
+                                        <td className="p-3">
+                                            <Input
+                                                value={row.region_vnm || ''}
+                                                onChange={(e) => updateRow(row.id, "region_vnm", e.target.value)}
+                                                onFocus={(e) => e.target.select()}
+                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
+                                                placeholder="VD: Châu Á"
+                                            />
+                                        </td>
+                                        <td className="p-3">
+                                            <Input
+                                                value={row.two_letter_code || ''}
+                                                onChange={(e) => updateRow(row.id, "two_letter_code", e.target.value)}
+                                                onFocus={(e) => e.target.select()}
+                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
+                                                placeholder="VD: VN"
+                                            />
+                                        </td>
+                                        <td className="p-3">
+                                            <Input
+                                                value={row.three_letter_code || ''}
+                                                onChange={(e) => updateRow(row.id, "three_letter_code", e.target.value)}
+                                                onFocus={(e) => e.target.select()}
+                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
+                                                placeholder="VD: VNA"
                                             />
                                         </td>
                                     </tr>
@@ -369,4 +423,4 @@ const Aircraft = () => {
     )
 }
 
-export default Aircraft;
+export default Country;

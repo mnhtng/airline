@@ -43,7 +43,7 @@ Có thể thay thế thao tác thủ công trên với `uv install`
 1. Mở Terminal trong folder cần tạo virtual env (name-project/backend)
 2. Run: `uv init .`
 3. Run: `uv venv` / `uv venv .venv`
-4 Run: `uv add ... ...` / `uv pip install -r requirements.txt`
+4 Run: `uv add ... ...` / `uv pip install -r requirements.txt` / `pip install -r requirements.txt`
     - VD: `uv add fastapi[standard] uvicorn pydantic sqlalchemy pyodbc langchain langchain-openai python-dotenv`
 5 Activate the virtual environment:
     - Mac/Linux: `source .venv/bin/activate`

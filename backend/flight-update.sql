@@ -1,102 +1,167 @@
+-- Drop old tables
+DROP TABLE IF EXISTS Country_Ref;
+DROP TABLE IF EXISTS Dim_Country_Ref;
+DROP TABLE IF EXISTS Airline_Ref;
+DROP TABLE IF EXISTS Dim_Airline_Ref;
+DROP TABLE IF EXISTS Airport_Ref;
+DROP TABLE IF EXISTS Dim_Airport_Ref;
+DROP TABLE IF EXISTS Sector_Route_DOM_Ref;
+DROP TABLE IF EXISTS Dim_Sector_Route_DOM_Ref;
+
 -- Add new tables
-CREATE TABLE Countries
+CREATE TABLE Country_Ref
 (
-    id INT IDENTITY (1,1) PRIMARY KEY,
-    [Country] NVARCHAR (100) NOT NULL,
-    [Region] NVARCHAR (100),
-    [Region VNM] NVARCHAR (100),
-    [2 Letter Code] CHAR(2) NOT NULL,
-    [3 Letter Code] CHAR(3) NOT NULL,
-    created_at DATETIME2 (3) DEFAULT SYSUTCDATETIME (),
-    updated_at DATETIME2 (3) DEFAULT SYSUTCDATETIME ()
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [Country] NVARCHAR(100) NOT NULL,
+    [Region] NVARCHAR(100) NOT NULL,
+    [Region_(VNM)] NVARCHAR(100),
+    [2_Letter_Code] CHAR(2) NOT NULL,
+    [3_Letter_Code] CHAR(3) NOT NULL,
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
 );
+GO
 
-INSERT INTO Countries
-    ([Country], [Region], [Region VNM], [2 Letter Code], [3 Letter Code], created_at, updated_at)
-VALUES
-    ('Afghanistan', 'South-Central Asia', N'Nam Á', 'AF', 'AFG', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Albania', 'Balkan Peninsula', N'Châu Âu', 'AL', 'ALB', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Algeria', 'Northern Africa', N'Châu Phi', 'DZ', 'DZA', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('American Samoa', 'Polynesia, Oceania', N'Châu Đại Dương', 'AS', 'ASM', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Andorra', 'Southern Europe', N'Châu Âu', 'AD', 'AND', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Angola', 'Central Africa', N'Châu Phi', 'AO', 'AGO', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Anguilla', 'Leeward Islands, Caribbean', N'Caribe', 'AI', 'AIA', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Antarctica', 'Antarctica', NULL, 'AQ', 'ATA', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Antigua and Barbuda', 'Leeward Islands, Caribbean', N'Caribe', 'AG', 'ATG', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000'),
-    ('Argentina', 'Southern South America', N'Nam Mỹ', 'AR', 'ARG', '2025-10-08 23:38:11.000', '2025-10-08 23:38:11.000');
-
-
-CREATE TABLE Airlines
+CREATE TABLE Dim_Country_Ref
 (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    [Carrier] NVARCHAR(10) NOT NULL,
-    [Airline Nation] NVARCHAR(100) NOT NULL,
-    [Airlines Name] NVARCHAR(150) NOT NULL,
-    created_at DATETIME2(3) DEFAULT SYSDATETIME(),
-    updated_at DATETIME2(3) DEFAULT SYSDATETIME()
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [Country] NVARCHAR(100),
+    [Region] NVARCHAR(100),
+    [Region_(VNM)] NVARCHAR(100),
+    [2_Letter_Code] CHAR(2),
+    [3_Letter_Code] CHAR(3),
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
 );
+GO
 
-INSERT INTO Airlines
-    ([Carrier], [Airline Nation], [Airlines Name], created_at, updated_at)
+INSERT INTO Country_Ref
+    ([Country], [Region], [Region_(VNM)], [2_Letter_Code], [3_Letter_Code], created_at, updated_at)
 VALUES
-    ('SF', 'Algeria', 'Tassili Airlines', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('DT', 'Angola', 'TAAG Angola Airlines', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('3K', 'Australia', 'Jetstar Asia Airways', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('JQ', 'Australia', 'Jetstar Airways', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('QF', 'Australia', 'Qantas', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('VA', 'Australia', 'Virgin Australia', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('OS', 'Austria', 'Austrian Airlines', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('J2', 'Azerbaijan', 'Azerbaijan Airlines', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('UP', 'Bahamas', 'Bahamasair', '2025-10-08 23:36:08', '2025-10-08 23:36:08'),
-    ('GF', 'Bahrain', 'Gulf Air', '2025-10-08 23:36:08', '2025-10-08 23:36:08');
+    ('Afghanistan', 'South-Central Asia', N'Nam Á', 'AF', 'AFG', SYSDATETIME(), SYSDATETIME()),
+    ('Albania', 'Balkan Peninsula', N'Châu Âu', 'AL', 'ALB', SYSDATETIME(), SYSDATETIME()),
+    ('Algeria', 'Northern Africa', N'Châu Phi', 'DZ', 'DZA', SYSDATETIME(), SYSDATETIME()),
+    ('American Samoa', 'Polynesia, Oceania', N'Châu Đại Dương', 'AS', 'ASM', SYSDATETIME(), SYSDATETIME()),
+    ('Andorra', 'Southern Europe', N'Châu Âu', 'AD', 'AND', SYSDATETIME(), SYSDATETIME()),
+    ('Angola', 'Central Africa', N'Châu Phi', 'AO', 'AGO', SYSDATETIME(), SYSDATETIME()),
+    ('Anguilla', 'Leeward Islands, Caribbean', N'Caribe', 'AI', 'AIA', SYSDATETIME(), SYSDATETIME()),
+    ('Antarctica', 'Antarctica', NULL, 'AQ', 'ATA', SYSDATETIME(), SYSDATETIME()),
+    ('Antigua and Barbuda', 'Leeward Islands, Caribbean', N'Caribe', 'AG', 'ATG', SYSDATETIME(), SYSDATETIME()),
+    ('Argentina', 'Southern South America', N'Nam Mỹ', 'AR', 'ARG', SYSDATETIME(), SYSDATETIME());
+GO
 
 
-CREATE TABLE Airports
+CREATE TABLE Airline_Ref
 (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [CARRIER] NVARCHAR(10) NOT NULL,
+    [Airline_Nation] NVARCHAR(100) NOT NULL,
+    [Airlines_Name] NVARCHAR(150) NOT NULL,
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
+);
+GO
+
+CREATE TABLE Dim_Airline_Ref
+(
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [CARRIER] NVARCHAR(10),
+    [Airline_Nation] NVARCHAR(100),
+    [Airlines_Name] NVARCHAR(150),
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
+);
+GO
+
+INSERT INTO Airline_Ref
+    ([CARRIER], [Airline_Nation], [Airlines_Name], created_at, updated_at)
+VALUES
+    ('SF', 'Algeria', 'Tassili Airlines', SYSDATETIME(), SYSDATETIME()),
+    ('DT', 'Angola', 'TAAG Angola Airlines', SYSDATETIME(), SYSDATETIME()),
+    ('3K', 'Australia', 'Jetstar Asia Airways', SYSDATETIME(), SYSDATETIME()),
+    ('JQ', 'Australia', 'Jetstar Airways', SYSDATETIME(), SYSDATETIME()),
+    ('QF', 'Australia', 'Qantas', SYSDATETIME(), SYSDATETIME()),
+    ('VA', 'Australia', 'Virgin Australia', SYSDATETIME(), SYSDATETIME()),
+    ('OS', 'Austria', 'Austrian Airlines', SYSDATETIME(), SYSDATETIME()),
+    ('J2', 'Azerbaijan', 'Azerbaijan Airlines', SYSDATETIME(), SYSDATETIME()),
+    ('UP', 'Bahamas', 'Bahamasair', SYSDATETIME(), SYSDATETIME()),
+    ('GF', 'Bahrain', 'Gulf Air', SYSDATETIME(), SYSDATETIME());
+GO
+
+
+CREATE TABLE Airport_Ref
+(
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     [IATACode] NVARCHAR(10) NOT NULL,
-    [Airport Name] NVARCHAR(200) NOT NULL,
+    [Airport_Name] NVARCHAR(200) NOT NULL,
     [City] NVARCHAR(100) NOT NULL,
     [Country] NVARCHAR(100) NOT NULL,
-    created_at DATETIME2(3) DEFAULT SYSDATETIME(),
-    updated_at DATETIME2(3) DEFAULT SYSDATETIME()
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
 );
+GO
 
-INSERT INTO Airports
-    ([IATACode], [Airport Name], [City], [Country], created_at, updated_at)
-VALUES
-    ('VPS', 'Destin–Fort Walton Beach Airport', 'Valparaiso', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('DLF', 'Laughlin Afb', 'Del Rio', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('MGE', 'Dobbins Air Reserve Base', 'Marietta', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('DOV', 'Sde Dov Airport', 'Tel Aviv', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('DBQ', 'Dubuque Regional Airport', 'Dubuque', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('DLH', 'Duluth International Airport', 'Duluth', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('DYS', 'DYESS AFB Airport', 'Abilene', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('EDW', 'Edwards Air Force Base', 'California', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('ERI', 'Erie International Airport Tom Ridge Field', 'Erie', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38'),
-    ('SKA', 'Fairchild Air Force Base', 'Washington', 'United States', '2025-10-09 06:22:38', '2025-10-09 06:22:38');
-
-
-CREATE TABLE Sectors
+CREATE TABLE Dim_Airport_Ref
 (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    [Sector] NVARCHAR(20) NOT NULL,
-    [Area lv1] NVARCHAR(100) NOT NULL,
-    [DOM/INT] NVARCHAR(10) NOT NULL,
-    created_at DATETIME2(3) DEFAULT SYSDATETIME(),
-    updated_at DATETIME2(3) DEFAULT SYSDATETIME()
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [IATACode] NVARCHAR(10),
+    [Airport_Name] NVARCHAR(200),
+    [City] NVARCHAR(100),
+    [Country] NVARCHAR(100),
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
 );
+GO
 
-INSERT INTO Sectors
-    ([Sector], [Area lv1], [DOM/INT], created_at, updated_at)
+INSERT INTO Airport_Ref
+    ([IATACode], [Airport_Name], [City], [Country], created_at, updated_at)
 VALUES
-    ('BMV-PQC', N'Du lịch', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('PQC-BMV', N'Du lịch', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('PQC-CXR', N'Du lịch', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('CXR-PQC', N'Du lịch', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('VCA-CXR', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('CXR-VCA', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('DAD-BMV', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('BMV-DAD', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('DAD-CXR', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42'),
-    ('CXR-DAD', N'Địa phương_2', 'DOM', '2025-10-09 06:27:42', '2025-10-09 06:27:42');
+    ('VPS', 'Destin–Fort Walton Beach Airport', 'Valparaiso', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('DLF', 'Laughlin Afb', 'Del Rio', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('MGE', 'Dobbins Air Reserve Base', 'Marietta', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('DOV', 'Sde Dov Airport', 'Tel Aviv', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('DBQ', 'Dubuque Regional Airport', 'Dubuque', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('DLH', 'Duluth International Airport', 'Duluth', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('DYS', 'DYESS AFB Airport', 'Abilene', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('EDW', 'Edwards Air Force Base', 'California', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('ERI', 'Erie International Airport Tom Ridge Field', 'Erie', 'United States', SYSDATETIME(), SYSDATETIME()),
+    ('SKA', 'Fairchild Air Force Base', 'Washington', 'United States', SYSDATETIME(), SYSDATETIME());
+GO
+
+
+CREATE TABLE Sector_Route_DOM_Ref
+(
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [Sector] NVARCHAR(20) NOT NULL,
+    [Area_Lv1] NVARCHAR(100) NOT NULL,
+    [DOM/INT] NVARCHAR(10) NOT NULL,
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
+);
+GO
+
+CREATE TABLE Dim_Sector_Route_DOM_Ref
+(
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    [Sector] NVARCHAR(20),
+    [Area_Lv1] NVARCHAR(100),
+    [DOM/INT] NVARCHAR(10),
+    created_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL,
+    updated_at DATETIME2 DEFAULT SYSDATETIME() NOT NULL
+);
+GO
+
+INSERT INTO Sector_Route_DOM_Ref
+    ([Sector], [Area_Lv1], [DOM/INT], created_at, updated_at)
+VALUES
+    ('BMV-PQC', N'Du lịch', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('PQC-BMV', N'Du lịch', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('PQC-CXR', N'Du lịch', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-PQC', N'Du lịch', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('VCA-CXR', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-VCA', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('DAD-BMV', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('BMV-DAD', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('DAD-CXR', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-DAD', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME());
+GO

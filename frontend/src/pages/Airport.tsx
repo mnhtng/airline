@@ -29,52 +29,40 @@ import { FieldGroup } from "@/components/ui/field"
 import { AsiaButton } from "@/components/ui/asia-button"
 import { format } from "date-fns"
 
-interface RouteProps {
-    index: number
-    route: string
-    ac?: string
-    route_id?: string
-    fh_theo_gio?: string
-    flight_hour?: number
-    taxi?: number
-    block_hour?: number
-    distance_km?: number
-    loai?: string
-    type?: string
-    country?: string
+interface AirportProps {
+    id: number
+    iata_code: string
+    airport_name: string
+    city: string
+    country: string
     created_at: string
     updated_at: string
 }
 
-interface RouteDraftProps {
-    route: string
-    ac?: string
-    route_id?: string
-    fh_theo_gio?: number
-    flight_hour?: number
-    taxi?: number
-    block_hour?: number
-    distance_km?: number
-    loai?: string
-    type?: string
+interface AirportDraftProps {
+    id: number
+    iata_code?: string
+    airport_name?: string
+    city?: string
     country?: string
-    created_at: string
+    created_at?: string
+    updated_at?: string
 }
 
-const Airway = () => {
+const Airport = () => {
     const navigate = useNavigate()
 
-    const [data, setData] = useState<RouteDraftProps[]>([])
-    const [exportData, setExportData] = useState<RouteProps[]>([])
+    const [data, setData] = useState<AirportDraftProps[]>([])
+    const [exportData, setExportData] = useState<AirportProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [edit, setEdit] = useState<boolean>(false)
 
-    async function getRoutes() {
+    async function getAirports() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/routes`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/airports`)
             const result = await response.json()
 
             setExportData(result)
@@ -86,11 +74,11 @@ const Airway = () => {
         }
     }
 
-    async function getRouteDrafts() {
+    async function getAirportDrafts() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/temp-route-import`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/dim-airports`)
             const result = await response.json()
 
             setData(result)
@@ -103,58 +91,51 @@ const Airway = () => {
     }
 
     useEffect(() => {
-        getRouteDrafts()
-        getRoutes()
+        getAirportDrafts()
+        getAirports()
     }, [])
 
-    const updateRow = (route: string, field: keyof RouteDraftProps, value: string | number) => {
-        setData((prev) => prev.map((row) => (row.route === route ? { ...row, [field]: value } : row)))
+    const updateRow = (id: number, field: keyof AirportDraftProps, value: string | number) => {
+        setData((prev) => prev.map((row) => {
+            return row.id === id ? { ...row, [field]: value } : row;
+        }))
         setEdit(true)
     }
 
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.route &&
-            row.route.trim() !== '' &&
-            row.ac &&
-            row.ac.trim() !== '' &&
-            row.flight_hour &&
-            row.flight_hour > 0 &&
-            row.distance_km &&
-            row.distance_km > 0 &&
+            row.iata_code &&
+            row.iata_code.trim() !== '' &&
+            row.airport_name &&
+            row.airport_name.trim() !== '' &&
+            row.city &&
+            row.city.trim() !== '' &&
             row.country &&
             row.country.trim() !== ''
         )
 
         if (validData.length === 0) {
             toast.error("Không có dữ liệu hợp lệ để lưu!", {
-                description: "Vui lòng nhập ít nhất một tuyến bay với thông tin đầy đủ.",
+                description: "Vui lòng nhập ít nhất một sân bay với thông tin đầy đủ.",
             })
             return
         }
 
         const processedData = validData.map(row => ({
-            route: row.route.trim(),
-            ac: row.ac?.trim(),
-            route_id: row.route_id?.trim() || null,
-            flight_hour: row.flight_hour,
-            fh_theo_gio: row.flight_hour,
-            taxi: row?.taxi || null,
-            block_hour: row?.block_hour || null,
-            distance_km: row.distance_km,
-            loai: row.loai?.trim() || null,
-            type: row.type?.trim() || null,
-            country: row.country?.trim(),
+            iata_code: row.iata_code?.trim(),
+            airport_name: row.airport_name?.trim(),
+            city: row.city?.trim(),
+            country: row.country?.trim()
         }))
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/routes/bulk-create`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/airports/bulk-create`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ routes: processedData })
+                body: JSON.stringify({ airport_refs: processedData })
             })
 
             if (!response.ok) {
@@ -168,8 +149,8 @@ const Airway = () => {
             setEdit(false)
             setLoading(false)
             setError(null)
-            getRouteDrafts()
-            toast.success("Dữ liệu tuyến bay đã được lưu thành công!", {
+            getAirportDrafts()
+            toast.success("Dữ liệu sân bay đã được lưu thành công!", {
                 description: "Tất cả thông tin đã được cập nhật trong cơ sở dữ liệu."
             })
         } catch (error) {
@@ -224,8 +205,9 @@ const Airway = () => {
         start.setHours(0, 0, 0, 0)
         end.setHours(23, 59, 59, 999)
 
-        const filteredData = exportData.filter(route => {
-            return new Date(route.updated_at || route.created_at) >= start && new Date(route.updated_at || route.created_at) <= end;
+        const filteredData = exportData.filter(airport => {
+            const updateDate = airport.updated_at ? new Date(airport.updated_at) : new Date(airport.created_at);
+            return updateDate >= start && updateDate <= end;
         })
 
         if (filteredData.length === 0) {
@@ -236,27 +218,27 @@ const Airway = () => {
         }
 
         import("xlsx").then((XLSX) => {
-            const excelData = filteredData.map(route => ({
-                Index: route.index,
-                "Route Code": route.route,
-                "Aircraft Type": route.ac,
-                "Route ID": route.route_id,
-                "Flight Hour": route.flight_hour,
-                "Taxi Time": route.taxi,
-                "Block Hour": route.block_hour,
-                "Distance (km)": route.distance_km,
-                "Type (VN)": route.loai,
-                "Type (EN)": route.type,
-                Country: route.country,
-                "Created At": format(new Date(route.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": route.updated_at ? format(new Date(route.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            const excelData = filteredData.map(airport => ({
+                Id: airport.id,
+                "IATA Code": airport.iata_code,
+                "Airport Name": airport.airport_name,
+                City: airport.city,
+                Country: airport.country,
+                "Created At": format(new Date(airport.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Updated At": airport.updated_at ? format(new Date(airport.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
             const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, "Routes")
+            XLSX.utils.book_append_sheet(wb, ws, "Airports")
 
-            const fileName = `routes_export_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
+                const fileName = `airports_${format(start, "dd-MM-yyyy")}.xlsx`
+                XLSX.writeFile(wb, fileName)
+                return
+            }
+
+            const fileName = `airports_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }
@@ -323,101 +305,83 @@ const Airway = () => {
                             <thead>
                                 <tr className="border-b border-slate-400 bg-slate-300/30 dark:bg-slate-800/50">
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Mã Tuyến Bay
+                                        Mã Sân Bay
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Loại Máy Bay
+                                        Tên Sân Bay
+                                    </th>
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Thành Phố
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
                                         Quốc Gia
-                                    </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Thời Gian Bay (giờ)
-                                    </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Khoảng Cách (km)
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="py-6 text-center">
+                                        <td colSpan={4} className="py-6 text-center">
                                             <Loading />
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={5}>
+                                        <td colSpan={4}>
                                             <ErrorBanner
                                                 title={error}
                                                 description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại."
-                                                retry={() => getRouteDrafts()}
+                                                retry={() => getAirportDrafts()}
                                             />
                                         </td>
                                     </tr>
                                 ) : data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="p-3 text-center text-slate-500">
+                                        <td colSpan={4} className="p-3 text-center text-slate-500">
                                             Không có dữ liệu
                                         </td>
                                     </tr>
                                 ) : data.map((row, index) => (
                                     <tr
-                                        key={row.route}
+                                        key={row.id}
                                         className={`border-b border-slate-200/40 dark:border-slate-700/40 hover:bg-sky-200/35 dark:hover:bg-sky-800/30 transition-all duration-200 group ${index % 2 === 0 ? "bg-white/40 dark:bg-slate-900/40" : "bg-slate-50/20 dark:bg-slate-800/20"
                                             }`}
                                     >
-                                        <td className="p-4">
+                                        <td className="p-3">
                                             <Input
-                                                value={row.route}
-                                                onChange={(e) => updateRow(row.route, "route", e.target.value.toUpperCase())}
+                                                value={row.iata_code}
+                                                onChange={(e) => updateRow(row.id, "iata_code", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: HAN-SGN"
+                                                placeholder="VD: HAN"
                                                 tabIndex={-1}
                                             />
                                         </td>
-                                        <td className="p-4">
+                                        <td className="p-3">
                                             <Input
-                                                value={row.ac || ''}
-                                                onChange={(e) => updateRow(row.route, "ac", e.target.value.toUpperCase())}
+                                                value={row.airport_name || ''}
+                                                onChange={(e) => updateRow(row.id, "airport_name", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="A320"
+                                                placeholder="VD: Nội Bài"
                                             />
                                         </td>
-                                        <td className="p-4">
+                                        <td className="p-3">
+                                            <Input
+                                                value={row.city || ''}
+                                                onChange={(e) => updateRow(row.id, "city", e.target.value)}
+                                                onFocus={(e) => e.target.select()}
+                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
+                                                placeholder="VD: Hà Nội"
+                                            />
+                                        </td>
+                                        <td className="p-3">
                                             <Input
                                                 value={row.country || ''}
-                                                onChange={(e) => updateRow(row.route, "country", e.target.value)}
+                                                onChange={(e) => updateRow(row.id, "country", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="Việt Nam"
-                                            />
-                                        </td>
-                                        <td className="p-4">
-                                            <Input
-                                                type="number"
-                                                min={0}
-                                                step="0.1"
-                                                value={row.flight_hour || ''}
-                                                onChange={(e) => updateRow(row.route, "flight_hour", parseFloat(e.target.value) || 0)}
-                                                onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="2.5"
-                                            />
-                                        </td>
-                                        <td className="p-4">
-                                            <Input
-                                                type="number"
-                                                min={0}
-                                                step="0.1"
-                                                value={row.distance_km || ''}
-                                                onChange={(e) => updateRow(row.route, "distance_km", parseFloat(e.target.value) || 0)}
-                                                onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="1000"
+                                                placeholder="VD: Việt Nam"
                                             />
                                         </td>
                                     </tr>
@@ -441,4 +405,4 @@ const Airway = () => {
     )
 }
 
-export default Airway;
+export default Airport;

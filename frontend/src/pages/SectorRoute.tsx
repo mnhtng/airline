@@ -29,34 +29,38 @@ import { FieldGroup } from "@/components/ui/field"
 import { AsiaButton } from "@/components/ui/asia-button"
 import { format } from "date-fns"
 
-interface AircraftProps {
-    index: number
-    actype: string
-    seat: number
+interface SectorRouteProps {
+    id: number
+    sector: string
+    area_lv1: string
+    dom_int: string
     created_at: string
     updated_at: string
 }
 
-interface AircraftDraftProps {
-    actype: string
-    seat?: number
-    created_at: string
+interface SectorRouteDraftProps {
+    id: number
+    sector?: string
+    area_lv1?: string
+    dom_int?: string
+    created_at?: string
+    updated_at?: string
 }
 
-const Aircraft = () => {
+const SectorRoute = () => {
     const navigate = useNavigate()
 
-    const [data, setData] = useState<AircraftDraftProps[]>([])
-    const [exportData, setExportData] = useState<AircraftProps[]>([])
+    const [data, setData] = useState<SectorRouteDraftProps[]>([])
+    const [exportData, setExportData] = useState<SectorRouteProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [edit, setEdit] = useState<boolean>(false)
 
-    async function getAircrafts() {
+    async function getSectorRoutes() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/actype-seats`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/sector-route-doms`)
             const result = await response.json()
 
             setExportData(result)
@@ -68,11 +72,11 @@ const Aircraft = () => {
         }
     }
 
-    async function getAircraftDrafts() {
+    async function getSectorRouteDrafts() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/temp-actype-import`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/dim-sector-route-doms`)
             const result = await response.json()
 
             setData(result)
@@ -85,13 +89,13 @@ const Aircraft = () => {
     }
 
     useEffect(() => {
-        getAircraftDrafts()
-        getAircrafts()
+        getSectorRouteDrafts()
+        getSectorRoutes()
     }, [])
 
-    const updateRow = (actype: string, field: keyof AircraftDraftProps, value: string | number) => {
+    const updateRow = (id: number, field: keyof SectorRouteDraftProps, value: string | number) => {
         setData((prev) => prev.map((row) => {
-            return row.actype === actype ? { ...row, [field]: value } : row;
+            return row.id === id ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
     }
@@ -99,31 +103,34 @@ const Aircraft = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.actype &&
-            row.actype.trim() !== '' &&
-            row.seat &&
-            row.seat > 0
+            row.sector &&
+            row.sector.trim() !== '' &&
+            row.area_lv1 &&
+            row.area_lv1.trim() !== '' &&
+            row.dom_int &&
+            row.dom_int.trim() !== ''
         )
 
         if (validData.length === 0) {
             toast.error("Không có dữ liệu hợp lệ để lưu!", {
-                description: "Vui lòng nhập ít nhất một máy bay với thông tin đầy đủ.",
+                description: "Vui lòng nhập ít nhất một phân loại tuyến bay với thông tin đầy đủ.",
             })
             return
         }
 
         const processedData = validData.map(row => ({
-            actype: row.actype.trim(),
-            seat: row.seat
+            sector: row.sector?.trim(),
+            area_lv1: row.area_lv1?.trim(),
+            dom_int: row.dom_int?.trim()
         }))
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/actype-seats/bulk-create`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/sector-route-doms/bulk-create`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ actype_seats: processedData })
+                body: JSON.stringify({ sector_route_dom_refs: processedData })
             })
 
             if (!response.ok) {
@@ -137,8 +144,8 @@ const Aircraft = () => {
             setEdit(false)
             setLoading(false)
             setError(null)
-            getAircraftDrafts()
-            toast.success("Dữ liệu máy bay đã được lưu thành công!", {
+            getSectorRouteDrafts()
+            toast.success("Dữ liệu phân loại tuyến bay đã được lưu thành công!", {
                 description: "Tất cả thông tin đã được cập nhật trong cơ sở dữ liệu."
             })
         } catch (error) {
@@ -193,8 +200,8 @@ const Aircraft = () => {
         start.setHours(0, 0, 0, 0)
         end.setHours(23, 59, 59, 999)
 
-        const filteredData = exportData.filter(aircraft => {
-            const updateDate = aircraft.updated_at ? new Date(aircraft.updated_at) : new Date(aircraft.created_at);
+        const filteredData = exportData.filter(SectorRoute => {
+            const updateDate = SectorRoute.updated_at ? new Date(SectorRoute.updated_at) : new Date(SectorRoute.created_at);
             return updateDate >= start && updateDate <= end;
         })
 
@@ -206,25 +213,26 @@ const Aircraft = () => {
         }
 
         import("xlsx").then((XLSX) => {
-            const excelData = filteredData.map(aircraft => ({
-                Index: aircraft.index,
-                "Aircraft Type": aircraft.actype,
-                Seats: aircraft.seat,
-                "Created At": format(new Date(aircraft.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": aircraft.updated_at ? format(new Date(aircraft.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            const excelData = filteredData.map(sectorRouteDom => ({
+                Id: sectorRouteDom.id,
+                "Sector": sectorRouteDom.sector,
+                "Area Lv1": sectorRouteDom.area_lv1,
+                "Dom/Int": sectorRouteDom.dom_int,
+                "Created At": format(new Date(sectorRouteDom.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Updated At": sectorRouteDom.updated_at ? format(new Date(sectorRouteDom.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
             const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, "Aircrafts")
+            XLSX.utils.book_append_sheet(wb, ws, "Sector Route DOMs")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `sector_route_doms_${format(start, "dd-MM-yyyy")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `sector_route_doms_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }
@@ -291,61 +299,71 @@ const Aircraft = () => {
                             <thead>
                                 <tr className="border-b border-slate-400 bg-slate-300/30 dark:bg-slate-800/50">
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Mã Máy Bay
+                                        Mã Sector
                                     </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[80px]">
-                                        Số Ghế
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Vùng Địa Lý Level 1
+                                    </th>
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
+                                        Dom/Int
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={2} className="py-6 text-center">
+                                        <td colSpan={3} className="py-6 text-center">
                                             <Loading />
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={2}>
+                                        <td colSpan={3}>
                                             <ErrorBanner
                                                 title={error}
                                                 description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại."
-                                                retry={() => getAircraftDrafts()}
+                                                retry={() => getSectorRouteDrafts()}
                                             />
                                         </td>
                                     </tr>
                                 ) : data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={2} className="p-3 text-center text-slate-500">
+                                        <td colSpan={3} className="p-3 text-center text-slate-500">
                                             Không có dữ liệu
                                         </td>
                                     </tr>
                                 ) : data.map((row, index) => (
                                     <tr
-                                        key={row.actype}
+                                        key={row.id}
                                         className={`border-b border-slate-200/40 dark:border-slate-700/40 hover:bg-sky-200/35 dark:hover:bg-sky-800/30 transition-all duration-200 group ${index % 2 === 0 ? "bg-white/40 dark:bg-slate-900/40" : "bg-slate-50/20 dark:bg-slate-800/20"
                                             }`}
                                     >
                                         <td className="p-3">
                                             <Input
-                                                value={row.actype}
-                                                onChange={(e) => updateRow(row.actype, "actype", e.target.value.toUpperCase())}
+                                                value={row.sector}
+                                                onChange={(e) => updateRow(row.id, "sector", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: VN-A123"
+                                                placeholder="VD: SGN-HAN"
                                                 tabIndex={-1}
                                             />
                                         </td>
                                         <td className="p-3">
                                             <Input
-                                                type="number"
-                                                min={1}
-                                                value={row.seat || ''}
-                                                onChange={(e) => updateRow(row.actype, "seat", parseInt(e.target.value) || 0)}
+                                                value={row.area_lv1}
+                                                onChange={(e) => updateRow(row.id, "area_lv1", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: 180"
+                                                placeholder="VD: Domestic"
+                                            />
+                                        </td>
+                                        <td className="p-3">
+                                            <Input
+                                                value={row.dom_int}
+                                                onChange={(e) => updateRow(row.id, "dom_int", e.target.value.toUpperCase())}
+                                                onFocus={(e) => e.target.select()}
+                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
+                                                placeholder="VD: DOM"
                                             />
                                         </td>
                                     </tr>
@@ -369,4 +387,4 @@ const Aircraft = () => {
     )
 }
 
-export default Aircraft;
+export default SectorRoute;

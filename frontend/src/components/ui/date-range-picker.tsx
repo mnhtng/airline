@@ -15,7 +15,7 @@ import {
 
 import { cn } from "@/lib/utils"
 
-import { Button } from "@/components/ui/button"
+import { AsiaButton } from "@/components/ui/asia-button"
 import {
   Calendar,
   CalendarCell,
@@ -37,9 +37,14 @@ const DateRangePicker = AriaDateRangePicker
 const DatePickerContent = ({
   className,
   popoverClassName,
+  placement = "bottom end",
   ...props
-}: AriaDialogProps & { popoverClassName?: AriaPopoverProps["className"] }) => (
+}: AriaDialogProps & {
+  popoverClassName?: AriaPopoverProps["className"]
+  placement?: AriaPopoverProps["placement"]
+}) => (
   <Popover
+    placement={placement}
     className={composeRenderProps(popoverClassName, (className) =>
       cn("w-auto p-3", className)
     )}
@@ -78,13 +83,13 @@ function JollyDatePicker<T extends AriaDateValue>({
       <Label>{label}</Label>
       <FieldGroup>
         <DateInput className="flex-1" variant="ghost" />
-        <Button
+        <AsiaButton
           variant="ghost"
           size="icon"
           className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
         >
           <CalendarIcon aria-hidden className="size-4" />
-        </Button>
+        </AsiaButton>
       </FieldGroup>
       {description && (
         <Text className="text-sm text-muted-foreground" slot="description">
@@ -138,13 +143,13 @@ function JollyDateRangePicker<T extends AriaDateValue>({
         </span>
         <DateInput className="flex-1" variant="ghost" slot={"end"} />
 
-        <Button
+        <AsiaButton
           variant="ghost"
           size="icon"
           className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
         >
           <CalendarIcon aria-hidden className="size-4" />
-        </Button>
+        </AsiaButton>
       </FieldGroup>
       {description && (
         <Text className="text-sm text-muted-foreground" slot="description">
@@ -152,7 +157,7 @@ function JollyDateRangePicker<T extends AriaDateValue>({
         </Text>
       )}
       <FieldError>{errorMessage}</FieldError>
-      <DatePickerContent>
+      <DatePickerContent placement="bottom end">
         <RangeCalendar>
           <CalendarHeading />
           <CalendarGrid>

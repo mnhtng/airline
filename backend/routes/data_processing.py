@@ -736,3 +736,248 @@ async def complete_data_processing_workflow(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_msg
         )
+
+
+@router.get("/export-flight-data")
+async def export_flight_data(
+    start_date: str,
+    end_date: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Export flight data to Excel based on datetime range using complex SQL logic.
+
+    This endpoint uses the same logic as the original SQL script with:
+    - SECTOR_DOM: Routes normalization and area mapping
+    - ROUTE_: Domestic routes with area
+    - FLIGHT_DATA: Filtered flight data from FLIGHT_DATA_CHOT
+    - DATA_: Main query with joins to get enriched flight information
+    - Final SELECT with area logic
+
+    Args:
+        start_date: Start datetime in format YYYY-MM-DD HH:MM:SS
+        end_date: End datetime in format YYYY-MM-DD HH:MM:SS
+        db: Database session
+
+    Returns:
+        JSON with flight data for the specified datetime range
+    """
+    try:
+        from datetime import datetime
+        from sqlalchemy import text
+
+        # Parse datetime strings
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+            end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ngày giờ không hợp lệ. Vui lòng nhập lại.",
+            )
+
+        # Validate datetime range
+        if start > end:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ngày giờ bắt đầu phải trước ngày giờ kết thúc.",
+            )
+
+        # Convert datetime to YYYYMMDD format (bigint) for CONVERT_DATE comparison
+        start_yyyymmdd = int(start.strftime("%Y%m%d"))
+        end_yyyymmdd = int(end.strftime("%Y%m%d"))
+
+        print(f"📊 Exporting flight data: {start_yyyymmdd} to {end_yyyymmdd}")
+        print(f"📅 Date range: {start} to {end}")
+
+        # Complex SQL query based on the provided script
+        sql_query = text(
+            """
+            WITH SECTOR_DOM AS (
+                SELECT 
+                    CASE 
+                        WHEN LEFT(SECTOR, CHARINDEX('-', SECTOR) - 1) < RIGHT(SECTOR, LEN(SECTOR) - CHARINDEX('-', SECTOR))
+                            THEN SECTOR
+                        ELSE RIGHT(SECTOR, LEN(SECTOR) - CHARINDEX('-', SECTOR)) + '-' + LEFT(SECTOR, CHARINDEX('-', SECTOR) - 1)
+                    END AS ROUTE,
+                    SECTOR,
+                    [AREA_LV1],
+                    [DOM/INT]
+                FROM SECTOR_ROUTE_DOM_REF
+            ),
+            ROUTE_ AS (
+                SELECT 
+                    ROUTE,
+                    [AREA_LV1] AS AREA
+                FROM SECTOR_DOM
+                WHERE UPPER(LTRIM(RTRIM([DOM/INT]))) = 'DOM'
+                GROUP BY ROUTE, [AREA_LV1]
+            ),
+            FLIGHT_DATA AS (
+                SELECT 
+                    *,
+                    CASE 
+                        WHEN TOTALPAX = 0 AND (ISNULL(CGO, 0) + ISNULL(MAIL, 0) > 0) THEN 0 
+                        WHEN TOTALPAX > 0 THEN 1 
+                    END AS FLIGHT_TYPE  
+                FROM FLIGHT_DATA_CHOT
+                WHERE TYPE_FILTER > 0 
+                  AND NOTE IS NULL
+                  AND CONVERT_DATE >= :start_date
+                  AND CONVERT_DATE <= :end_date
+            ),
+            DATA_ AS (
+                SELECT
+                    CASE 
+                        WHEN LEFT(F.ROUTE, CHARINDEX('-', F.ROUTE) - 1) < RIGHT(F.ROUTE, LEN(F.ROUTE) - CHARINDEX('-', F.ROUTE))
+                            THEN F.ROUTE
+                        ELSE RIGHT(F.ROUTE, LEN(F.ROUTE) - CHARINDEX('-', F.ROUTE)) + '-' + LEFT(F.ROUTE, CHARINDEX('-', F.ROUTE) - 1)
+                    END AS ROUTE_SORT,
+                    F.*,
+                    LEFT(TRIM(F.FLIGHTNO), 2) AS AIRLINE_CODE,
+                    A.AIRLINES_NAME,
+                    A.AIRLINE_NATION,
+                    LEFT(F.ROUTE, 3) AS DEPARTURE,
+                    RIGHT(F.ROUTE, 3) AS ARRIVES,
+                    CASE 
+                        WHEN UPPER(AI.COUNTRY) = 'VIETNAM' AND UPPER(AI1.COUNTRY) = 'VIETNAM' THEN 'VIETNAM'
+                        WHEN UPPER(AI.COUNTRY) = 'VIETNAM' AND UPPER(AI1.COUNTRY) <> 'VIETNAM' THEN AI1.COUNTRY 
+                        ELSE AI.COUNTRY
+                    END AS COUNTRY,
+                    CASE 
+                        WHEN UPPER(AI.COUNTRY) = 'VIETNAM' AND UPPER(AI1.COUNTRY) = 'VIETNAM' THEN 'DOM'
+                        ELSE 'INT'
+                    END AS INT_DOM,
+                    CASE 
+                        WHEN UPPER(C.COUNTRY) = 'VIETNAM' AND UPPER(C1.COUNTRY) = 'VIETNAM' THEN 'VN'
+                        WHEN UPPER(C.COUNTRY) = 'VIETNAM' AND UPPER(C1.COUNTRY) <> 'VIETNAM' THEN C1.[2_LETTER_CODE]
+                        ELSE C.[2_LETTER_CODE]
+                    END AS COUNTRY_CODE,
+                    CASE 
+                        WHEN UPPER(C.COUNTRY) = 'VIETNAM' AND UPPER(C1.COUNTRY) = 'VIETNAM' THEN 'VN'
+                        WHEN UPPER(C.COUNTRY) = 'VIETNAM' AND UPPER(C1.COUNTRY) <> 'VIETNAM' THEN C1.[REGION_(VNM)]
+                        ELSE C.[REGION_(VNM)]
+                    END AS AREA,
+                    AI.CITY AS CITY_ARRIVES,
+                    AI.COUNTRY AS COUNTRY_ARRIVES,
+                    AI1.CITY AS CITY_DEPARTURE,
+                    AI1.COUNTRY AS COUNTRY_DEPARTURE,
+                    C2.[2_LETTER_CODE] AS AIRLINE_NATION_CODE
+                FROM FLIGHT_DATA F
+                LEFT JOIN AIRLINE_REF A 
+                    ON LEFT(F.FLIGHTNO, 2) = A.CARRIER
+                LEFT JOIN AIRPORT_REF AI 
+                    ON AI.IATACODE = RIGHT(F.ROUTE, 3)
+                LEFT JOIN AIRPORT_REF AI1 
+                    ON AI1.IATACODE = LEFT(F.ROUTE, 3)
+                LEFT JOIN COUNTRY_REF C 
+                    ON AI.COUNTRY = C.COUNTRY
+                LEFT JOIN COUNTRY_REF C1 
+                    ON AI1.COUNTRY = C1.COUNTRY
+                LEFT JOIN COUNTRY_REF C2 
+                    ON C2.COUNTRY = A.AIRLINE_NATION
+            )
+            SELECT  
+                CASE 
+                    WHEN S.ROUTE IS NOT NULL THEN S.AREA 
+                    ELSE D.AREA 
+                END AS AREA,
+                D.CONVERT_DATE, 
+                D.FLIGHTNO, 
+                D.ROUTE, 
+                D.ACTYPE, 
+                D.TOTALPAX, 
+                D.CGO, 
+                D.MAIL, 
+                D.ACREGNO, 
+                D.SOURCE, 
+                D.SHEET_NAME, 
+                D.SEAT, 
+                D.INT_DOM,
+                D.AIRLINE_CODE, 
+                D.AIRLINES_NAME, 
+                D.AIRLINE_NATION, 
+                D.AIRLINE_NATION_CODE,
+                D.DEPARTURE, 
+                D.CITY_DEPARTURE, 
+                D.COUNTRY_DEPARTURE,
+                D.ARRIVES, 
+                D.CITY_ARRIVES, 
+                D.COUNTRY_ARRIVES,
+                D.COUNTRY_CODE, 
+                D.AREA AS AREA_CODE,
+                D.FLIGHT_TYPE
+            FROM DATA_ AS D
+            LEFT JOIN ROUTE_ AS S 
+                ON D.ROUTE_SORT = S.ROUTE
+            ORDER BY D.CONVERT_DATE, D.FLIGHTNO
+        """
+        )
+
+        # Execute query with parameters (YYYYMMDD integer format + datetime for time filtering)
+        result = db.execute(
+            sql_query,
+            {
+                "start_date": start_yyyymmdd,
+                "end_date": end_yyyymmdd,
+            },
+        )
+        rows = result.fetchall()
+
+        if not rows:
+            return {
+                "success": False,
+                "message": "Không có dữ liệu chuyến bay trong khoảng thời gian đã chọn.",
+                "data": [],
+            }
+
+        # Convert to list of dictionaries
+        flight_data = []
+        for row in rows:
+            flight_dict = {
+                "area": row.AREA or "",
+                "convert_date": (
+                    row.CONVERT_DATE.strftime("%d/%m/%Y") if row.CONVERT_DATE else ""
+                ),
+                "flightno": row.FLIGHTNO or "",
+                "route": row.ROUTE or "",
+                "actype": row.ACTYPE or "",
+                "totalpax": row.TOTALPAX or 0,
+                "cgo": row.CGO or 0,
+                "mail": row.MAIL or 0,
+                "acregno": row.ACREGNO or "",
+                "source": row.SOURCE or "",
+                "sheet_name": row.SHEET_NAME or "",
+                "seat": row.SEAT or "",
+                "int_dom": row.INT_DOM or "",
+                "airline_code": row.AIRLINE_CODE or "",
+                "airlines_name": row.AIRLINES_NAME or "",
+                "airline_nation": row.AIRLINE_NATION or "",
+                "airline_nation_code": row.AIRLINE_NATION_CODE or "",
+                "departure": row.DEPARTURE or "",
+                "city_departure": row.CITY_DEPARTURE or "",
+                "country_departure": row.COUNTRY_DEPARTURE or "",
+                "arrives": row.ARRIVES or "",
+                "city_arrives": row.CITY_ARRIVES or "",
+                "country_arrives": row.COUNTRY_ARRIVES or "",
+                "country_code": row.COUNTRY_CODE or "",
+                "area_code": row.AREA_CODE or "",
+                "flight_type": row.FLIGHT_TYPE if row.FLIGHT_TYPE is not None else "",
+            }
+            flight_data.append(flight_dict)
+
+        return {
+            "success": True,
+            "message": "Export dữ liệu chuyến bay thành công.",
+            "data": flight_data,
+            "total_records": len(flight_data),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = "Lỗi khi export dữ liệu chuyến bay"
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_msg + ": " + str(e) + ".",
+        ) from e

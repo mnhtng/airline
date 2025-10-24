@@ -4,7 +4,10 @@ import Layout from "@/layout";
 import Index from "@/pages/Index";
 import NotFound from "@/components/NotFound";
 import Aircraft from "@/pages/Aircraft";
-import Airway from "@/pages/Airway";
+import Airline from "@/pages/Airline";
+import Airport from "@/pages/Airport";
+import Country from "@/pages/Country";
+import SectorRoute from "@/pages/SectorRoute";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +17,10 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Layout><Index /></Layout>} />
         <Route path="/aircraft" element={<Layout><Aircraft /></Layout>} />
-        <Route path="/airway" element={<Layout><Airway /></Layout>} />
+        <Route path="/airline" element={<Layout><Airline /></Layout>} />
+        <Route path="/airport" element={<Layout><Airport /></Layout>} />
+        <Route path="/country" element={<Layout><Country /></Layout>} />
+        <Route path="/sector-route" element={<Layout><SectorRoute /></Layout>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

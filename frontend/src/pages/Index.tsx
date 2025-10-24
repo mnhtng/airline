@@ -10,10 +10,18 @@ import {
     CheckCircle,
     AlertCircle,
     Loader2,
-    Folder
+    Folder,
+    Building2,
+    Landmark,
+    Globe2,
+    Download
 } from "lucide-react"
 import { useState, useRef } from "react"
 import { toast } from "sonner"
+import { JollyDateRangePicker } from "@/components/ui/date-range-picker"
+import { today, getLocalTimeZone } from "@internationalized/date"
+import { format } from "date-fns"
+import type { DateRange } from "react-aria-components"
 
 interface ExcelFile {
     name: string
@@ -46,6 +54,46 @@ interface ProcessResult {
     }
 }
 
+interface FlightExportData {
+    area: string
+    convert_date: string
+    flightno: string
+    route: string
+    actype: string
+    totalpax: number
+    cgo: number
+    mail: number
+    acregno: string
+    source: string
+    sheet_name: string
+    seat: string
+    int_dom: string
+    airline_code: string
+    airlines_name: string
+    airline_nation: string
+    airline_nation_code: string
+    departure: string
+    city_departure: string
+    country_departure: string
+    arrives: string
+    city_arrives: string
+    country_arrives: string
+    country_code: string
+    area_code: string
+    flight_type: number | string
+}
+
+interface ExportFlightDataResponse {
+    success: boolean
+    message: string
+    data: FlightExportData[]
+    total_records: number
+}
+
+interface APIErrorResponse {
+    detail: string
+}
+
 const Index = () => {
     const [uploadedFiles, setUploadedFiles] = useState<ExcelFile[]>([])
     const [isUploading, setIsUploading] = useState(false)
@@ -55,6 +103,10 @@ const Index = () => {
     // Reference input file to trigger programmatically
     const fileInputRef = useRef<HTMLInputElement>(null)
     const folderInputRef = useRef<HTMLInputElement>(null)
+
+    // Export section states
+    const [dateRange, setDateRange] = useState<DateRange | null>(null)
+    const [isExporting, setIsExporting] = useState(false)
 
     // Helper function to check if a file is a valid Excel file
     const isExcelFile = (file: File): boolean => {
@@ -461,6 +513,148 @@ const Index = () => {
         }
     }
 
+    /**
+     * Export flight data to Excel based on date range
+     */
+    const handleExportFlightData = async () => {
+        if (!dateRange || !dateRange.start || !dateRange.end) {
+            toast.warning("Vui lòng chọn khoảng thời gian", {
+                description: "Chọn ngày bắt đầu và ngày kết thúc để xuất dữ liệu.",
+            })
+            return
+        }
+
+        setIsExporting(true)
+
+        try {
+            const startDate = new Date(
+                dateRange.start.year,
+                dateRange.start.month - 1, // month is 0-indexed in JavaScript
+                dateRange.start.day
+            )
+            const endDate = new Date(
+                dateRange.end.year,
+                dateRange.end.month - 1,
+                dateRange.end.day,
+                23,
+                59,
+                59
+            )
+
+            // Format dates for API call
+            const startDateStr = format(startDate, "yyyy-MM-dd HH:mm:ss")
+            const endDateStr = format(endDate, "yyyy-MM-dd HH:mm:ss")
+
+            // Encode URL parameters (for spaces and special characters)
+            const encodedStartDate = encodeURIComponent(startDateStr)
+            const encodedEndDate = encodeURIComponent(endDateStr)
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/data-processing/export-flight-data?start_date=${encodedStartDate}&end_date=${encodedEndDate}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
+
+            if (!response.ok) {
+                const errorData = await response.json() as APIErrorResponse
+                toast.error("Lỗi khi xuất dữ liệu", {
+                    description: errorData.detail,
+                })
+                return
+            }
+
+            // Parse JSON response
+            let result: ExportFlightDataResponse
+            try {
+                result = await response.json() as ExportFlightDataResponse
+            } catch (parseError) {
+                toast.error("Lỗi khi xử lý dữ liệu", {
+                    description: "Phản hồi từ server không hợp lệ.",
+                })
+                return
+            }
+
+            // Handle unsuccessful response
+            if (!result.success) {
+                const message = result.message || "Có lỗi xảy ra khi xuất dữ liệu."
+                toast.warning("Không thể xuất dữ liệu", {
+                    description: message,
+                })
+                return
+            }
+
+            // Handle empty data
+            if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
+                const message = result.message || "Không có dữ liệu chuyến bay trong khoảng thời gian đã chọn."
+                toast.warning("Không có dữ liệu", {
+                    description: message,
+                })
+                return
+            }
+
+            // Export to Excel
+            const XLSX = await import("xlsx")
+            const excelData = result.data.map((flight: FlightExportData, index: number) => ({
+                STT: index + 1,
+                "Area": flight.area || "",
+                "Convert Date": flight.convert_date || "",
+                "Flight No": flight.flightno || "",
+                "Route": flight.route || "",
+                "Aircraft Type": flight.actype || "",
+                "Total Pax": flight.totalpax || 0,
+                "Cargo": flight.cgo || 0,
+                "Mail": flight.mail || 0,
+                "Aircraft Registration": flight.acregno || "",
+                "Source": flight.source || "",
+                "Sheet Name": flight.sheet_name || "",
+                "Seat": flight.seat || "",
+                "Int/Dom": flight.int_dom || "",
+                "Airline Code": flight.airline_code || "",
+                "Airlines Name": flight.airlines_name || "",
+                "Airline Nation": flight.airline_nation || "",
+                "Airline Nation Code": flight.airline_nation_code || "",
+                "Departure": flight.departure || "",
+                "City Departure": flight.city_departure || "",
+                "Country Departure": flight.country_departure || "",
+                "Arrives": flight.arrives || "",
+                "City Arrives": flight.city_arrives || "",
+                "Country Arrives": flight.country_arrives || "",
+                "Country Code": flight.country_code || "",
+                "Area Code": flight.area_code || "",
+                "Flight Type": flight.flight_type !== "" ? flight.flight_type : "",
+            }))
+
+            const ws = XLSX.utils.json_to_sheet(excelData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Flight Report")
+
+            // Auto-fit column widths
+            const maxWidth = 30
+            const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }))
+            ws['!cols'] = wscols
+
+            // Generate filename based on date range
+            let fileName: string
+            if ((endDate.getTime() - startDate.getTime()) <= 24 * 60 * 60 * 1000) {
+                fileName = `flight_report_${format(startDate, "dd-MM-yyyy")}.xlsx`
+            } else {
+                fileName = `flight_report_${format(startDate, "dd-MM-yyyy")}_to_${format(endDate, "dd-MM-yyyy")}.xlsx`
+            }
+
+            XLSX.writeFile(wb, fileName)
+        } catch (error) {
+            toast.error("Lỗi khi xuất dữ liệu", {
+                description: error instanceof Error ? error.message : "Có lỗi không xác định xảy ra",
+            })
+        } finally {
+            setIsExporting(false)
+        }
+    }
+
     //! Export sample Excel
     // const downloadSample = () => {
     //     const sampleData = [
@@ -478,16 +672,52 @@ const Index = () => {
     const features = [
         {
             icon: Plane,
-            title: "Quản lý Máy bay",
-            description: "Quản lý thông tin máy bay: mã máy bay, số ghế.",
-            href: "/aircraft",
+            title: "Máy bay",
+            description: "Quản lý thông tin số ghế máy bay.",
+            href: {
+                dim: "/aircraft",
+                fact: "/"
+            },
             color: "text-blue-600"
         },
         {
+            icon: Building2,
+            title: "Hãng hàng không",
+            description: "Quản lý thông tin hãng hàng không.",
+            href: {
+                dim: "/airline",
+                fact: "/"
+            },
+            color: "text-purple-600"
+        },
+        {
+            icon: Landmark,
+            title: "Sân bay",
+            description: "Quản lý thông tin sân bay.",
+            href: {
+                dim: "/airport",
+                fact: "/"
+            },
+            color: "text-amber-600"
+        },
+        {
+            icon: Globe2,
+            title: "Quốc gia",
+            description: "Quản lý thông tin quốc gia.",
+            href: {
+                dim: "/country",
+                fact: "/"
+            },
+            color: "text-cyan-600"
+        },
+        {
             icon: Route,
-            title: "Quản lý Đường bay",
-            description: "Quản lý các tuyến đường bay: tên, quốc gia, thời gian bay ...",
-            href: "/airway",
+            title: "Phân loại đường bay",
+            description: "Quản lý thông tin phân loại/sector của đường bay.",
+            href: {
+                dim: "/sector-route",
+                fact: "/"
+            },
             color: "text-green-600"
         },
     ]
@@ -507,35 +737,53 @@ const Index = () => {
                     </div>
 
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                        Hệ thống quản lý thông tin hàng không hiện đại. Quản lý máy bay và đường bay một cách
-                        hiệu quả với giao diện thân thiện và dễ sử dụng.
+                        Hệ thống quản lý hàng không: máy bay, hãng, sân bay, quốc gia và phân loại đường bay.
                     </p>
                 </div>
             </div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Features Grid - Compact Design */}
+            <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 {features.map((feature) => (
-                    <Card key={feature.title} className="aviation-card group">
-                        <CardHeader>
-                            <div className="flex items-center space-x-3">
-                                <div className={`p-2 rounded-lg bg-muted ${feature.color}`}>
-                                    <feature.icon className="h-6 w-6" />
+                    <Card key={feature.title} className="aviation-card group hover:shadow-lg transition-all duration-200 hover:scale-105">
+                        <CardHeader className="pb-3">
+                            <div className="flex flex-col items-center text-center space-y-3">
+                                <div className={`p-3 rounded-full bg-muted ${feature.color} group-hover:scale-110 transition-transform duration-200`}>
+                                    <feature.icon className="h-5 w-5" />
                                 </div>
-                                <CardTitle className="text-xl">{feature.title}</CardTitle>
+                                <CardTitle className="text-sm font-semibold leading-tight">{feature.title}</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="flex flex-col h-full">
-                            <CardDescription className="text-base mb-4">
+                        <CardContent className="pt-0 pb-4 h-full flex flex-col justify-between">
+                            <CardDescription className="text-xs text-center leading-relaxed mb-2">
                                 {feature.description}
                             </CardDescription>
 
-                            <Button variant="ghost" size="sm" asChild className="w-fit group-hover:translate-x-1 transition-transform mt-auto">
-                                <Link to={feature.href}>
-                                    Truy cập
-                                    <ArrowRight className="h-4 w-4 ml-2" />
-                                </Link>
-                            </Button>
+                            <div className="flex justify-evenly items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    asChild
+                                    className="text-xs group-hover:bg-primary/10 transition-all duration-200"
+                                >
+                                    <Link to={feature.href.dim} className="flex items-center justify-center space-x-1">
+                                        <span>Phiếu điền</span>
+                                        <ArrowRight className="h-3 w-3" />
+                                    </Link>
+                                </Button>
+
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    asChild
+                                    className="text-xs group-hover:bg-primary/10 transition-all duration-200"
+                                >
+                                    <Link to={feature.href.fact} className="flex items-center justify-center space-x-1">
+                                        <span>Quản lý</span>
+                                        <ArrowRight className="h-3 w-3" />
+                                    </Link>
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
@@ -544,11 +792,109 @@ const Index = () => {
             {/* Excel Import Section */}
             <div className="space-y-6 py-12">
                 <div className="text-center">
-                    <h2 className="text-3xl font-bold mb-4">Import và xử lý dữ liệu từ Excel</h2>
-                    <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Tải lên file Excel chuyến bay để làm sạch, xử lý và làm giàu dữ liệu.
-                    </p>
+                    <h2 className="text-3xl font-bold mb-4">
+                        Import/Export dữ liệu chuyến bay
+                    </h2>
                 </div>
+
+                {/* Export Flight Data Section */}
+                <Card className="max-w-4xl mx-auto mt-8">
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                            <Download className="h-5 w-5" />
+                            <span>Xuất dữ liệu chuyến bay</span>
+                        </CardTitle>
+                        <CardDescription>
+                            Chọn khoảng thời gian để xuất dữ liệu chuyến bay đã xử lý thành file Excel.
+                        </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="space-y-6">
+                        {/* Date Range Picker */}
+                        <div className="flex flex-col space-y-4">
+                            <JollyDateRangePicker
+                                label="Chọn khoảng thời gian"
+                                description="Chọn ngày bắt đầu và ngày kết thúc để xuất dữ liệu chuyến bay"
+                                value={dateRange}
+                                onChange={setDateRange}
+                                maxValue={today(getLocalTimeZone())}
+                                className="w-full"
+                            />
+
+                            {/* Export Statistics */}
+                            {dateRange && dateRange.start && dateRange.end && (
+                                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Từ ngày:</span>
+                                        <span className="font-medium">
+                                            {format(
+                                                new Date(
+                                                    dateRange.start.year,
+                                                    dateRange.start.month - 1,
+                                                    dateRange.start.day
+                                                ),
+                                                "dd/MM/yyyy"
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Đến ngày:</span>
+                                        <span className="font-medium">
+                                            {format(
+                                                new Date(
+                                                    dateRange.end.year,
+                                                    dateRange.end.month - 1,
+                                                    dateRange.end.day
+                                                ),
+                                                "dd/MM/yyyy"
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Số ngày:</span>
+                                        <span className="font-medium">
+                                            {Math.ceil(
+                                                (new Date(
+                                                    dateRange.end.year,
+                                                    dateRange.end.month - 1,
+                                                    dateRange.end.day
+                                                ).getTime() -
+                                                    new Date(
+                                                        dateRange.start.year,
+                                                        dateRange.start.month - 1,
+                                                        dateRange.start.day
+                                                    ).getTime()) /
+                                                (1000 * 60 * 60 * 24)
+                                            ) + 1} ngày
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Export Button */}
+                        <div className="flex justify-center">
+                            <Button
+                                onClick={handleExportFlightData}
+                                disabled={isExporting || !dateRange || !dateRange.start || !dateRange.end}
+                                className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
+                                size="lg"
+                            >
+                                {isExporting ? (
+                                    <>
+                                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                        Đang xuất dữ liệu...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-5 w-5 mr-2" />
+                                        Xuất dữ liệu chuyến bay
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <Card className="max-w-4xl mx-auto">
                     <CardHeader>
