@@ -12,6 +12,7 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    base: '/',
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
