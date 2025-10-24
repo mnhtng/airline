@@ -10,13 +10,21 @@ class DimCountryRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho DimCountryRef
     """
 
-    country: Optional[str] = Field(None, ge=0, le=100, description="Tên quốc gia")
-    region: Optional[str] = Field(None, ge=0, le=100, description="Khu vực địa lý")
-    region_vnm: Optional[str] = Field(
-        None, ge=0, le=100, description="Khu vực địa lý tiếng Việt"
+    country: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Tên quốc gia"
     )
-    two_letter_code: Optional[str] = Field(None, ge=0, le=2, description="Mã 2 ký tự")
-    three_letter_code: Optional[str] = Field(None, ge=0, le=3, description="Mã 3 ký tự")
+    region: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Khu vực địa lý"
+    )
+    region_vnm: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Khu vực địa lý tiếng Việt"
+    )
+    two_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=2, description="Mã 2 ký tự"
+    )
+    three_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=3, description="Mã 3 ký tự"
+    )
 
     @field_validator("country", "region", "region_vnm")
     def validate_name(cls, v):
@@ -46,13 +54,21 @@ class DimCountryRefCreate(DimCountryRefBase):
 class DimCountryRefUpdate(BaseModel):
     """Schema để cập nhật DimCountryRef"""
 
-    country: Optional[str] = Field(None, ge=0, le=100, description="Tên quốc gia")
-    region: Optional[str] = Field(None, ge=0, le=100, description="Khu vực địa lý")
-    region_vnm: Optional[str] = Field(
-        None, ge=0, le=100, description="Khu vực địa lý tiếng Việt"
+    country: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Tên quốc gia"
     )
-    two_letter_code: Optional[str] = Field(None, ge=0, le=2, description="Mã 2 ký tự")
-    three_letter_code: Optional[str] = Field(None, ge=0, le=3, description="Mã 3 ký tự")
+    region: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Khu vực địa lý"
+    )
+    region_vnm: Optional[str] = Field(
+        None, min_length=0, max_length=100, description="Khu vực địa lý tiếng Việt"
+    )
+    two_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=2, description="Mã 2 ký tự"
+    )
+    three_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=3, description="Mã 3 ký tự"
+    )
 
     @field_validator("country", "region", "region_vnm")
     def validate_name(cls, v):

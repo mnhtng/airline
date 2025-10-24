@@ -57,13 +57,13 @@ class AirlineRefUpdate(BaseModel):
     """Schema để cập nhật AirlineRef"""
 
     carrier: Optional[str] = Field(
-        None, ge=0, le=10, description="Mã hãng 2 ký tự (VD: VN, VJ)"
+        None, min_length=0, max_length=10, description="Mã hãng 2 ký tự (VD: VN, VJ)"
     )
     airline_nation: Optional[str] = Field(
-        None, ge=0, le=100, description="Quốc gia của hãng hàng không"
+        None, min_length=0, max_length=100, description="Quốc gia của hãng hàng không"
     )
     airlines_name: Optional[str] = Field(
-        None, ge=0, le=150, description="Tên đầy đủ của hãng hàng không"
+        None, min_length=0, max_length=150, description="Tên đầy đủ của hãng hàng không"
     )
 
     @field_validator("carrier")

@@ -10,13 +10,17 @@ class DimAirportRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho DimAirportRef
     """
 
-    iata_code: Optional[str] = Field(None, ge=0, le=10, description="Mã sân bay")
-    airport_name: Optional[str] = Field(None, ge=0, le=200, description="Tên sân bay")
+    iata_code: Optional[str] = Field(
+        None, min_length=0, max_length=10, description="Mã sân bay"
+    )
+    airport_name: Optional[str] = Field(
+        None, min_length=0, max_length=200, description="Tên sân bay"
+    )
     city: Optional[str] = Field(
-        None, ge=0, le=100, description="Thành phố nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Thành phố nơi sân bay được đặt"
     )
     country: Optional[str] = Field(
-        None, ge=0, le=100, description="Quốc gia nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Quốc gia nơi sân bay được đặt"
     )
 
     @field_validator("iata_code")
@@ -67,13 +71,17 @@ class DimAirportRefCreate(DimAirportRefBase):
 class DimAirportRefUpdate(DimAirportRefBase):
     """Schema để cập nhật DimAirportRef"""
 
-    iata_code: Optional[str] = Field(None, ge=0, le=10, description="Mã sân bay")
-    airport_name: Optional[str] = Field(None, ge=0, le=200, description="Tên sân bay")
+    iata_code: Optional[str] = Field(
+        None, min_length=0, max_length=10, description="Mã sân bay"
+    )
+    airport_name: Optional[str] = Field(
+        None, min_length=0, max_length=200, description="Tên sân bay"
+    )
     city: Optional[str] = Field(
-        None, ge=0, le=100, description="Thành phố nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Thành phố nơi sân bay được đặt"
     )
     country: Optional[str] = Field(
-        None, ge=0, le=100, description="Quốc gia nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Quốc gia nơi sân bay được đặt"
     )
 
     @field_validator("iata_code")

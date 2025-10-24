@@ -61,12 +61,17 @@ class SectorRouteDomRefCreate(SectorRouteDomRefBase):
 class SectorRouteDomRefUpdate(SectorRouteDomRefBase):
     """Schema để cập nhật SectorRouteDomRef"""
 
-    sector: Optional[str] = Field(None, ge=0, le=20, description="Mã sector tuyến bay")
+    sector: Optional[str] = Field(
+        None, min_length=0, max_length=20, description="Mã sector tuyến bay"
+    )
     area_lv1: Optional[str] = Field(
-        None, ge=0, le=100, description="Khu vực/vùng địa lý level 1"
+        None, min_length=0, max_length=100, description="Khu vực/vùng địa lý level 1"
     )
     dom_int: Optional[str] = Field(
-        None, ge=0, le=10, description="Domestic (DOM) hoặc International (INT)"
+        None,
+        min_length=0,
+        max_length=10,
+        description="Domestic (DOM) hoặc International (INT)",
     )
 
     @field_validator("sector")

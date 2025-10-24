@@ -50,6 +50,21 @@ VALUES
     ('Argentina', 'Southern South America', N'Nam Mỹ', 'AR', 'ARG', SYSDATETIME(), SYSDATETIME());
 GO
 
+INSERT INTO Dim_Country_Ref
+    ([Country], created_at, updated_at)
+VALUES
+    ('Afghanistan', SYSDATETIME(), SYSDATETIME()),
+    ('Albania', SYSDATETIME(), SYSDATETIME()),
+    ('Algeria', SYSDATETIME(), SYSDATETIME()),
+    ('American Samoa', SYSDATETIME(), SYSDATETIME()),
+    ('Andorra', SYSDATETIME(), SYSDATETIME()),
+    ('Angola', SYSDATETIME(), SYSDATETIME()),
+    ('Anguilla', SYSDATETIME(), SYSDATETIME()),
+    ('Antarctica', SYSDATETIME(), SYSDATETIME()),
+    ('Antigua and Barbuda', SYSDATETIME(), SYSDATETIME()),
+    ('Argentina', SYSDATETIME(), SYSDATETIME());
+GO
+
 
 CREATE TABLE Airline_Ref
 (
@@ -86,6 +101,21 @@ VALUES
     ('J2', 'Azerbaijan', 'Azerbaijan Airlines', SYSDATETIME(), SYSDATETIME()),
     ('UP', 'Bahamas', 'Bahamasair', SYSDATETIME(), SYSDATETIME()),
     ('GF', 'Bahrain', 'Gulf Air', SYSDATETIME(), SYSDATETIME());
+GO
+
+INSERT INTO Dim_Airline_Ref
+    ([CARRIER], created_at, updated_at)
+VALUES
+    ('SF', SYSDATETIME(), SYSDATETIME()),
+    ('DT', SYSDATETIME(), SYSDATETIME()),
+    ('3K', SYSDATETIME(), SYSDATETIME()),
+    ('JQ', SYSDATETIME(), SYSDATETIME()),
+    ('QF', SYSDATETIME(), SYSDATETIME()),
+    ('VA', SYSDATETIME(), SYSDATETIME()),
+    ('OS', SYSDATETIME(), SYSDATETIME()),
+    ('J2', SYSDATETIME(), SYSDATETIME()),
+    ('UP', SYSDATETIME(), SYSDATETIME()),
+    ('GF', SYSDATETIME(), SYSDATETIME());
 GO
 
 
@@ -128,6 +158,21 @@ VALUES
     ('SKA', 'Fairchild Air Force Base', 'Washington', 'United States', SYSDATETIME(), SYSDATETIME());
 GO
 
+INSERT INTO Dim_Airport_Ref
+    ([IATACode], created_at, updated_at)
+VALUES
+    ('VPS', SYSDATETIME(), SYSDATETIME()),
+    ('DLF', SYSDATETIME(), SYSDATETIME()),
+    ('MGE', SYSDATETIME(), SYSDATETIME()),
+    ('DOV', SYSDATETIME(), SYSDATETIME()),
+    ('DBQ', SYSDATETIME(), SYSDATETIME()),
+    ('DLH', SYSDATETIME(), SYSDATETIME()),
+    ('DYS', SYSDATETIME(), SYSDATETIME()),
+    ('EDW', SYSDATETIME(), SYSDATETIME()),
+    ('ERI', SYSDATETIME(), SYSDATETIME()),
+    ('SKA', SYSDATETIME(), SYSDATETIME());
+GO
+
 
 CREATE TABLE Sector_Route_DOM_Ref
 (
@@ -164,4 +209,19 @@ VALUES
     ('BMV-DAD', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
     ('DAD-CXR', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME()),
     ('CXR-DAD', N'Địa phương_2', 'DOM', SYSDATETIME(), SYSDATETIME());
+GO
+
+INSERT INTO Dim_Sector_Route_DOM_Ref
+    ([Sector], created_at, updated_at)
+VALUES
+    ('BMV-PQC', SYSDATETIME(), SYSDATETIME()),
+    ('PQC-BMV', SYSDATETIME(), SYSDATETIME()),
+    ('PQC-CXR', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-PQC', SYSDATETIME(), SYSDATETIME()),
+    ('VCA-CXR', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-VCA', SYSDATETIME(), SYSDATETIME()),
+    ('DAD-BMV', SYSDATETIME(), SYSDATETIME()),
+    ('BMV-DAD', SYSDATETIME(), SYSDATETIME()),
+    ('DAD-CXR', SYSDATETIME(), SYSDATETIME()),
+    ('CXR-DAD', SYSDATETIME(), SYSDATETIME());
 GO

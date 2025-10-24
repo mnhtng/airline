@@ -67,13 +67,17 @@ class AirportRefCreate(AirportRefBase):
 class AirportRefUpdate(AirportRefBase):
     """Schema để cập nhật AirportRef"""
 
-    airport_code: Optional[str] = Field(None, ge=0, le=10, description="Mã sân bay")
-    airport_name: Optional[str] = Field(None, ge=0, le=200, description="Tên sân bay")
+    airport_code: Optional[str] = Field(
+        None, min_length=0, max_length=10, description="Mã sân bay"
+    )
+    airport_name: Optional[str] = Field(
+        None, min_length=0, max_length=200, description="Tên sân bay"
+    )
     city: Optional[str] = Field(
-        None, ge=0, le=100, description="Thành phố nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Thành phố nơi sân bay được đặt"
     )
     country: Optional[str] = Field(
-        None, ge=0, le=100, description="Quốc gia nơi sân bay được đặt"
+        None, min_length=0, max_length=100, description="Quốc gia nơi sân bay được đặt"
     )
 
     @field_validator("airport_code")
