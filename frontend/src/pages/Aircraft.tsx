@@ -5,7 +5,8 @@ import {
     ArrowLeft,
     FolderDown,
     Sparkles,
-    CalendarIcon
+    CalendarIcon,
+    Plus,
 } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
@@ -75,6 +76,11 @@ const Aircraft = () => {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/temp-actype-import`)
             const result = await response.json()
 
+            result.map((row: any) => {
+                row.actype = ""
+                return row
+            })
+
             setData(result)
             setError(null)
         } catch (error) {
@@ -94,6 +100,20 @@ const Aircraft = () => {
             return row.actype === actype ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
+    }
+
+    const addRow = () => {
+        const newRow: AircraftDraftProps = {
+            actype: "",
+            seat: undefined,
+            created_at: new Date().toISOString()
+        }
+        setData((prev) => [...prev, newRow])
+        setEdit(true)
+
+        toast.success("Đã thêm hàng mới!", {
+            description: "Vui lòng điền thông tin cho hàng mới."
+        })
     }
 
     const handleSubmit = async () => {
@@ -293,7 +313,7 @@ const Aircraft = () => {
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
                                         Mã Máy Bay
                                     </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[80px]">
+                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
                                         Số Ghế
                                     </th>
                                 </tr>
@@ -332,9 +352,7 @@ const Aircraft = () => {
                                                 value={row.actype}
                                                 onChange={(e) => updateRow(row.actype, "actype", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: VN-A123"
-                                                tabIndex={-1}
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
@@ -344,8 +362,7 @@ const Aircraft = () => {
                                                 value={row.seat || ''}
                                                 onChange={(e) => updateRow(row.actype, "seat", parseInt(e.target.value) || 0)}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: 180"
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                     </tr>
@@ -355,7 +372,16 @@ const Aircraft = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-8">
+                <div className="flex justify-between gap-4 mt-8">
+                    <Button
+                        onClick={addRow}
+                        variant="outline"
+                        className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 shadow-lg shadow-green-500/15 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Thêm Hàng
+                    </Button>
+
                     <Button
                         onClick={handleSubmit}
                         className="bg-primary text-primary-foreground shadow-lg shadow-blue-500/25 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"

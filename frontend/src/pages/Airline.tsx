@@ -5,7 +5,8 @@ import {
     ArrowLeft,
     FolderDown,
     Sparkles,
-    CalendarIcon
+    CalendarIcon,
+    Plus
 } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
@@ -99,6 +100,21 @@ const Airline = () => {
             return row.id === id ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
+    }
+
+    const addRow = () => {
+        const newRow: AirlineDraftProps = {
+            id: data.length + 1,
+            carrier: "",
+            airline_nation: "",
+            airlines_name: "",
+        }
+        setData((prev) => [...prev, newRow])
+        setEdit(true)
+
+        toast.success("Đã thêm hàng mới!", {
+            description: "Vui lòng điền thông tin cho hàng mới."
+        })
     }
 
     const handleSubmit = async () => {
@@ -344,9 +360,7 @@ const Airline = () => {
                                                 value={row.carrier}
                                                 onChange={(e) => updateRow(row.id, "carrier", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: VN"
-                                                tabIndex={-1}
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
@@ -354,8 +368,7 @@ const Airline = () => {
                                                 value={row.airline_nation || ''}
                                                 onChange={(e) => updateRow(row.id, "airline_nation", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: Việt Nam"
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
@@ -363,8 +376,7 @@ const Airline = () => {
                                                 value={row.airlines_name || ''}
                                                 onChange={(e) => updateRow(row.id, "airlines_name", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: Vietnam Airlines"
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                     </tr>
@@ -374,7 +386,16 @@ const Airline = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-8">
+                <div className="flex justify-between gap-4 mt-8">
+                    <Button
+                        onClick={addRow}
+                        variant="outline"
+                        className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 shadow-lg shadow-green-500/15 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Thêm Hàng
+                    </Button>
+
                     <Button
                         onClick={handleSubmit}
                         className="bg-primary text-primary-foreground shadow-lg shadow-blue-500/25 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"

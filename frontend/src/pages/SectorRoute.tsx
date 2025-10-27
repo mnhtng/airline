@@ -5,7 +5,8 @@ import {
     ArrowLeft,
     FolderDown,
     Sparkles,
-    CalendarIcon
+    CalendarIcon,
+    Plus
 } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
@@ -98,6 +99,21 @@ const SectorRoute = () => {
             return row.id === id ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
+    }
+
+    const addRow = () => {
+        const newRow: SectorRouteDraftProps = {
+            id: data.length + 1,
+            sector: "",
+            area_lv1: "",
+            dom_int: "",
+        }
+        setData((prev) => [...prev, newRow])
+        setEdit(true)
+
+        toast.success("Đã thêm hàng mới!", {
+            description: "Vui lòng điền thông tin cho hàng mới."
+        })
     }
 
     const handleSubmit = async () => {
@@ -343,9 +359,7 @@ const SectorRoute = () => {
                                                 value={row.sector}
                                                 onChange={(e) => updateRow(row.id, "sector", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: SGN-HAN"
-                                                tabIndex={-1}
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
@@ -353,8 +367,7 @@ const SectorRoute = () => {
                                                 value={row.area_lv1}
                                                 onChange={(e) => updateRow(row.id, "area_lv1", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: Domestic"
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
@@ -362,8 +375,7 @@ const SectorRoute = () => {
                                                 value={row.dom_int}
                                                 onChange={(e) => updateRow(row.id, "dom_int", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
-                                                className="border-0 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                                placeholder="VD: DOM"
+                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                     </tr>
@@ -373,7 +385,16 @@ const SectorRoute = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-8">
+                <div className="flex justify-between gap-4 mt-8">
+                    <Button
+                        onClick={addRow}
+                        variant="outline"
+                        className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 shadow-lg shadow-green-500/15 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Thêm Hàng
+                    </Button>
+
                     <Button
                         onClick={handleSubmit}
                         className="bg-primary text-primary-foreground shadow-lg shadow-blue-500/25 transition-all duration-200 rounded-xl px-6 py-2 flex items-center gap-2"

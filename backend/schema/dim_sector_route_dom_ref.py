@@ -26,9 +26,8 @@ class DimSectorRouteDomRefBase(BaseModel):
     @field_validator("sector")
     def validate_sector(cls, v):
         """Validate sector format"""
-        v = v.upper().strip()
         if v is not None:
-            v = v.upper().strip()
+            v = v.strip()
             if not v or len(v) == 0:
                 raise ValueError("Mã sector không được để trống")
         return v
@@ -46,7 +45,7 @@ class DimSectorRouteDomRefBase(BaseModel):
     def validate_dom_int(cls, v):
         """Validate dom int format"""
         if v is not None:
-            v = v.upper().strip()
+            v = v.strip()
             if v and v not in ["DOM", "INT"]:
                 raise ValueError(
                     "Domestic (DOM) hoặc International (INT) không được để trống"
@@ -81,9 +80,8 @@ class DimSectorRouteDomRefUpdate(DimSectorRouteDomRefBase):
     @field_validator("sector")
     def validate_sector(cls, v):
         """Validate sector format"""
-        v = v.upper().strip()
         if v is not None:
-            v = v.upper().strip()
+            v = v.strip()
             if not v or len(v) == 0:
                 raise ValueError("Mã sector không được để trống")
         return v
@@ -101,7 +99,7 @@ class DimSectorRouteDomRefUpdate(DimSectorRouteDomRefBase):
     def validate_dom_int(cls, v):
         """Validate dom int format"""
         if v is not None:
-            v = v.upper().strip()
+            v = v.strip()
             if v and v not in ["DOM", "INT"]:
                 raise ValueError(
                     "Domestic (DOM) hoặc International (INT) không được để trống"
