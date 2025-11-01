@@ -46,22 +46,22 @@ const Layout = ({ children }: LayoutProps) => {
             label: "Phiếu điền",
             icon: BookOpenCheck,
             items: [
-                { path: "/aircraft", label: "Máy bay", icon: Plane, color: "text-blue-700" },
-                { path: "/airport", label: "Sân bay", icon: Landmark, color: "text-orange-700" },
-                { path: "/airline", label: "Hãng hàng không", icon: Building2, color: "text-purple-700" },
-                { path: "/country", label: "Quốc gia", icon: Globe2, color: "text-cyan-700" },
-                { path: "/sector-route", label: "Phân loại đường bay", icon: Route, color: "text-green-700" },
+                { path: "/temp/aircraft", label: "Máy bay", icon: Plane, color: "text-blue-700" },
+                { path: "/temp/airport", label: "Sân bay", icon: Landmark, color: "text-orange-700" },
+                { path: "/temp/airline", label: "Hãng hàng không", icon: Building2, color: "text-purple-700" },
+                { path: "/temp/country", label: "Quốc gia", icon: Globe2, color: "text-cyan-700" },
+                { path: "/temp/sector-route", label: "Tuyến bay", icon: Route, color: "text-green-700" },
             ]
         },
         {
             label: "Quản lý",
             icon: Settings,
             items: [
-                { path: "/", label: "Máy bay", icon: Plane, color: "text-blue-700" },
-                { path: "/", label: "Sân bay", icon: Landmark, color: "text-orange-700" },
-                { path: "/", label: "Hãng hàng không", icon: Building2, color: "text-purple-700" },
-                { path: "/", label: "Quốc gia", icon: Globe2, color: "text-cyan-700" },
-                { path: "/", label: "Phân loại đường bay", icon: Route, color: "text-green-700" },
+                { path: "/manager/aircraft", label: "Máy bay", icon: Plane, color: "text-blue-700" },
+                { path: "/manager/airport", label: "Sân bay", icon: Landmark, color: "text-orange-700" },
+                { path: "/manager/airline", label: "Hãng hàng không", icon: Building2, color: "text-purple-700" },
+                { path: "/manager/country", label: "Quốc gia", icon: Globe2, color: "text-cyan-700" },
+                { path: "/manager/sector-route", label: "Tuyến bay", icon: Route, color: "text-green-700" },
             ]
         }
     ];

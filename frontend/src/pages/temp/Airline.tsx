@@ -30,40 +30,39 @@ import { FieldGroup } from "@/components/ui/field"
 import { AsiaButton } from "@/components/ui/asia-button"
 import { format } from "date-fns"
 
-interface AirportProps {
+
+interface AirlineProps {
     id: number
-    iata_code: string
-    airport_name: string
-    city: string
-    country: string
+    carrier: string
+    airline_nation: string
+    airlines_name: string
     created_at: string
     updated_at: string
 }
 
-interface AirportDraftProps {
+interface AirlineDraftProps {
     id: number
-    iata_code?: string
-    airport_name?: string
-    city?: string
-    country?: string
+    carrier?: string
+    airline_nation?: string
+    airlines_name?: string
     created_at?: string
     updated_at?: string
 }
 
-const Airport = () => {
+const DimAirline = () => {
     const navigate = useNavigate()
 
-    const [data, setData] = useState<AirportDraftProps[]>([])
-    const [exportData, setExportData] = useState<AirportProps[]>([])
+    const [data, setData] = useState<AirlineDraftProps[]>([])
+    const [exportData, setExportData] = useState<AirlineProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [edit, setEdit] = useState<boolean>(false)
 
-    async function getAirports() {
+    async function getAirlines() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/airports`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/airlines`)
             const result = await response.json()
 
             setExportData(result)
@@ -75,11 +74,11 @@ const Airport = () => {
         }
     }
 
-    async function getAirportDrafts() {
+    async function getAirlineDrafts() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/dim-airports`)
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/dim-airlines`)
             const result = await response.json()
 
             setData(result)
@@ -92,11 +91,11 @@ const Airport = () => {
     }
 
     useEffect(() => {
-        getAirportDrafts()
-        getAirports()
+        getAirlineDrafts()
+        getAirlines()
     }, [])
 
-    const updateRow = (id: number, field: keyof AirportDraftProps, value: string | number) => {
+    const updateRow = (id: number, field: keyof AirlineDraftProps, value: string | number) => {
         setData((prev) => prev.map((row) => {
             return row.id === id ? { ...row, [field]: value } : row;
         }))
@@ -104,12 +103,11 @@ const Airport = () => {
     }
 
     const addRow = () => {
-        const newRow: AirportDraftProps = {
+        const newRow: AirlineDraftProps = {
             id: data.length + 1,
-            iata_code: "",
-            airport_name: "",
-            city: "",
-            country: "",
+            carrier: "",
+            airline_nation: "",
+            airlines_name: "",
         }
         setData((prev) => [...prev, newRow])
         setEdit(true)
@@ -122,37 +120,34 @@ const Airport = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.iata_code &&
-            row.iata_code.trim() !== '' &&
-            row.airport_name &&
-            row.airport_name.trim() !== '' &&
-            row.city &&
-            row.city.trim() !== '' &&
-            row.country &&
-            row.country.trim() !== ''
+            row.carrier &&
+            row.carrier.trim() !== '' &&
+            row.airline_nation &&
+            row.airline_nation.trim() !== '' &&
+            row.airlines_name &&
+            row.airlines_name.trim() !== ''
         )
 
         if (validData.length === 0) {
             toast.error("Không có dữ liệu hợp lệ để lưu!", {
-                description: "Vui lòng nhập ít nhất một sân bay với thông tin đầy đủ.",
+                description: "Vui lòng nhập ít nhất một hãng hàng không với thông tin đầy đủ.",
             })
             return
         }
 
         const processedData = validData.map(row => ({
-            iata_code: row.iata_code?.trim(),
-            airport_name: row.airport_name?.trim(),
-            city: row.city?.trim(),
-            country: row.country?.trim()
+            carrier: row.carrier?.trim(),
+            airline_nation: row.airline_nation?.trim(),
+            airlines_name: row.airlines_name?.trim()
         }))
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/airports/bulk-create`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/airlines/bulk-create`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ airport_refs: processedData })
+                body: JSON.stringify({ airline_refs: processedData })
             })
 
             if (!response.ok) {
@@ -166,8 +161,8 @@ const Airport = () => {
             setEdit(false)
             setLoading(false)
             setError(null)
-            getAirportDrafts()
-            toast.success("Dữ liệu sân bay đã được lưu thành công!", {
+            getAirlineDrafts()
+            toast.success("Dữ liệu hãng hàng không đã được lưu thành công!", {
                 description: "Tất cả thông tin đã được cập nhật trong cơ sở dữ liệu."
             })
         } catch (error) {
@@ -222,8 +217,8 @@ const Airport = () => {
         start.setHours(0, 0, 0, 0)
         end.setHours(23, 59, 59, 999)
 
-        const filteredData = exportData.filter(airport => {
-            const updateDate = airport.updated_at ? new Date(airport.updated_at) : new Date(airport.created_at);
+        const filteredData = exportData.filter(airline => {
+            const updateDate = airline.updated_at ? new Date(airline.updated_at) : new Date(airline.created_at);
             return updateDate >= start && updateDate <= end;
         })
 
@@ -235,27 +230,26 @@ const Airport = () => {
         }
 
         import("xlsx").then((XLSX) => {
-            const excelData = filteredData.map(airport => ({
-                Id: airport.id,
-                "IATA Code": airport.iata_code,
-                "Airport Name": airport.airport_name,
-                City: airport.city,
-                Country: airport.country,
-                "Created At": format(new Date(airport.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": airport.updated_at ? format(new Date(airport.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            const excelData = filteredData.map(airline => ({
+                Id: airline.id,
+                "Carrier": airline.carrier,
+                "Airline Nation": airline.airline_nation,
+                "Airlines Name": airline.airlines_name,
+                "Created At": format(new Date(airline.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Updated At": airline.updated_at ? format(new Date(airline.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
             const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, "Airports")
+            XLSX.utils.book_append_sheet(wb, ws, "Airlines")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `airports_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `airlines_${format(start, "dd-MM-yyyy")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `airports_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `airlines_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }
@@ -322,13 +316,10 @@ const Airport = () => {
                             <thead>
                                 <tr className="border-b border-slate-400 bg-slate-300/30 dark:bg-slate-800/50">
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Mã Sân Bay
+                                        Mã Hãng
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Tên Sân Bay
-                                    </th>
-                                    <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Thành Phố
+                                        Tên Hãng
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
                                         Quốc Gia
@@ -338,23 +329,23 @@ const Airport = () => {
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={4} className="py-6 text-center">
+                                        <td colSpan={3} className="py-6 text-center">
                                             <Loading />
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={4}>
+                                        <td colSpan={3}>
                                             <ErrorBanner
                                                 title={error}
                                                 description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại."
-                                                retry={() => getAirportDrafts()}
+                                                retry={() => getAirlineDrafts()}
                                             />
                                         </td>
                                     </tr>
                                 ) : data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="p-3 text-center text-slate-500">
+                                        <td colSpan={3} className="p-3 text-center text-slate-500">
                                             Không có dữ liệu
                                         </td>
                                     </tr>
@@ -366,32 +357,24 @@ const Airport = () => {
                                     >
                                         <td className="p-3">
                                             <Input
-                                                value={row.iata_code}
-                                                onChange={(e) => updateRow(row.id, "iata_code", e.target.value.toUpperCase())}
+                                                value={row.carrier}
+                                                onChange={(e) => updateRow(row.id, "carrier", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
                                             <Input
-                                                value={row.airport_name || ''}
-                                                onChange={(e) => updateRow(row.id, "airport_name", e.target.value)}
+                                                value={row.airlines_name || ''}
+                                                onChange={(e) => updateRow(row.id, "airlines_name", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
                                         </td>
                                         <td className="p-3">
                                             <Input
-                                                value={row.city || ''}
-                                                onChange={(e) => updateRow(row.id, "city", e.target.value)}
-                                                onFocus={(e) => e.target.select()}
-                                                className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
-                                            />
-                                        </td>
-                                        <td className="p-3">
-                                            <Input
-                                                value={row.country || ''}
-                                                onChange={(e) => updateRow(row.id, "country", e.target.value)}
+                                                value={row.airline_nation || ''}
+                                                onChange={(e) => updateRow(row.id, "airline_nation", e.target.value)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
@@ -423,7 +406,9 @@ const Airport = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Airport;
+export default DimAirline;
+
+

@@ -48,7 +48,7 @@ interface SectorRouteDraftProps {
     updated_at?: string
 }
 
-const SectorRoute = () => {
+const DimSectorRoute = () => {
     const navigate = useNavigate()
 
     const [data, setData] = useState<SectorRouteDraftProps[]>([])
@@ -318,10 +318,10 @@ const SectorRoute = () => {
                                         Mã Sector
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Vùng Địa Lý Level 1
+                                        Vùng Cấp 1
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Dom/Int
+                                        Nội địa/Quốc tế
                                     </th>
                                 </tr>
                             </thead>
@@ -408,4 +408,4 @@ const SectorRoute = () => {
     )
 }
 
-export default SectorRoute;
+export default DimSectorRoute;

@@ -56,4 +56,6 @@ class SectorRouteDomRef(Base):
             "sector": self.sector,
             "area_lv1": self.area_lv1,
             "dom_int": self.dom_int,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }

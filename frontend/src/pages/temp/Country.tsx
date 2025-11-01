@@ -52,7 +52,7 @@ interface CountryDraftProps {
     updated_at?: string
 }
 
-const Country = () => {
+const DimCountry = () => {
     const navigate = useNavigate()
 
     const [data, setData] = useState<CountryDraftProps[]>([])
@@ -332,10 +332,10 @@ const Country = () => {
                                         Quốc Gia
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Khu Vực
+                                        Khu Vực (QT)
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
-                                        Khu Vực Tiếng Việt
+                                        Khu Vực (VN)
                                     </th>
                                     <th className="text-left text-xs p-3 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide min-w-[100px]">
                                         Mã 2 Ký Tự
@@ -444,4 +444,4 @@ const Country = () => {
     )
 }
 
-export default Country;
+export default DimCountry;

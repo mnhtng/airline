@@ -39,75 +39,75 @@ async def get_all_actype_seats(
         )
 
 
-# @router.get("/{actype}", response_model=ActypeSeatResponse)
-# async def get_actype_seat(actype: str, db: Session = Depends(get_db)):
-#     """
-#     Lấy thông tin cấu hình ghế theo loại máy bay
-#     """
+@router.get("/{actype}", response_model=ActypeSeatResponse)
+async def get_actype_seat(actype: str, db: Session = Depends(get_db)):
+    """
+    Lấy thông tin cấu hình ghế theo loại máy bay
+    """
 
-#     try:
-#         actype_seat = (
-#             db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
-#         )
-#         if not actype_seat:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND,
-#                 detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
-#             )
-#         return actype_seat
+    try:
+        actype_seat = (
+            db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
+        )
+        if not actype_seat:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
+            )
+        return actype_seat
 
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Lỗi server khi lấy thông tin cấu hình ghế: {str(e)}",
-#         )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi server khi lấy thông tin cấu hình ghế: {str(e)}",
+        )
 
 
-# @router.post(
-#     "/", response_model=ActypeSeatResponse, status_code=status.HTTP_201_CREATED
-# )
-# async def create_actype_seat(
-#     actype_seat: ActypeSeatCreate, db: Session = Depends(get_db)
-# ):
-#     """
-#     Tạo cấu hình ghế mới cho loại máy bay
-#     """
+@router.post(
+    "/", response_model=ActypeSeatResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_actype_seat(
+    actype_seat: ActypeSeatCreate, db: Session = Depends(get_db)
+):
+    """
+    Tạo cấu hình ghế mới cho loại máy bay
+    """
 
-#     try:
-#         # Kiểm tra xem actype đã tồn tại chưa
-#         existing = (
-#             db.query(ActypeSeat)
-#             .filter(ActypeSeat.actype == actype_seat.actype.upper())
-#             .first()
-#         )
-#         if existing:
-#             raise HTTPException(
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#                 detail=f"Aircraft type '{actype_seat.actype}' đã tồn tại",
-#             )
+    try:
+        # Kiểm tra xem actype đã tồn tại chưa
+        existing = (
+            db.query(ActypeSeat)
+            .filter(ActypeSeat.actype == actype_seat.actype.upper())
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Aircraft type '{actype_seat.actype}' đã tồn tại",
+            )
 
-#         db_actype_seat = ActypeSeat(**actype_seat.model_dump())
-#         db.add(db_actype_seat)
-#         db.commit()
-#         db.refresh(db_actype_seat)
-#         return db_actype_seat
+        db_actype_seat = ActypeSeat(**actype_seat.model_dump())
+        db.add(db_actype_seat)
+        db.commit()
+        db.refresh(db_actype_seat)
+        return db_actype_seat
 
-#     except HTTPException:
-#         raise
-#     except IntegrityError:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Dữ liệu không hợp lệ hoặc đã tồn tại",
-#         )
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Lỗi server khi tạo cấu hình ghế: {str(e)}",
-#         )
+    except HTTPException:
+        raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Dữ liệu không hợp lệ hoặc đã tồn tại",
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi server khi tạo cấu hình ghế: {str(e)}",
+        )
 
 
 @router.post(
@@ -184,106 +184,106 @@ async def create_actype_seats_bulk(
         )
 
 
-# @router.put("/{actype}", response_model=ActypeSeatResponse)
-# async def update_actype_seat(
-#     actype: str, actype_seat_update: ActypeSeatUpdate, db: Session = Depends(get_db)
-# ):
-#     """
-#     Cập nhật cấu hình ghế cho loại máy bay
-#     """
+@router.put("/{actype}", response_model=ActypeSeatResponse)
+async def update_actype_seat(
+    actype: str, actype_seat_update: ActypeSeatUpdate, db: Session = Depends(get_db)
+):
+    """
+    Cập nhật cấu hình ghế cho loại máy bay
+    """
 
-#     try:
-#         actype_seat = (
-#             db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
-#         )
-#         if not actype_seat:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND,
-#                 detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
-#             )
+    try:
+        actype_seat = (
+            db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
+        )
+        if not actype_seat:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
+            )
 
-#         # Cập nhật các trường được cung cấp
-#         update_data = actype_seat_update.model_dump(exclude_unset=True)
-#         for field, value in update_data.items():
-#             setattr(actype_seat, field, value)
+        # Cập nhật các trường được cung cấp
+        update_data = actype_seat_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(actype_seat, field, value)
 
-#         db.commit()
-#         db.refresh(actype_seat)
-#         return actype_seat
+        db.commit()
+        db.refresh(actype_seat)
+        return actype_seat
 
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Lỗi server khi cập nhật cấu hình ghế: {str(e)}",
-#         )
-
-
-# @router.delete("/{actype}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_actype_seat(actype: str, db: Session = Depends(get_db)):
-#     """
-#     Xóa cấu hình ghế cho loại máy bay
-#     """
-
-#     try:
-#         actype_seat = (
-#             db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
-#         )
-#         if not actype_seat:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND,
-#                 detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
-#             )
-
-#         db.delete(actype_seat)
-#         db.commit()
-#         return {
-#             "message": f"Đã xóa cấu hình ghế cho aircraft type '{actype}' thành công"
-#         }
-
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Lỗi server khi xóa cấu hình ghế: {str(e)}",
-#         )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi server khi cập nhật cấu hình ghế: {str(e)}",
+        )
 
 
-# @router.get("/search/", response_model=List[ActypeSeatResponse])
-# async def search_actype_seats(
-#     q: str = None,
-#     min_seat: int = None,
-#     max_seat: int = None,
-#     db: Session = Depends(get_db),
-# ):
-#     """
-#     Tìm kiếm cấu hình ghế theo các tiêu chí
-#     """
+@router.delete("/{actype}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_actype_seat(actype: str, db: Session = Depends(get_db)):
+    """
+    Xóa cấu hình ghế cho loại máy bay
+    """
 
-#     try:
-#         query = db.query(ActypeSeat)
+    try:
+        actype_seat = (
+            db.query(ActypeSeat).filter(ActypeSeat.actype == actype.upper()).first()
+        )
+        if not actype_seat:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Không tìm thấy cấu hình ghế cho aircraft type '{actype}'",
+            )
 
-#         if q:
-#             query = query.filter(ActypeSeat.actype.contains(q.upper()))
+        db.delete(actype_seat)
+        db.commit()
+        return {
+            "message": f"Đã xóa cấu hình ghế cho aircraft type '{actype}' thành công"
+        }
 
-#         if min_seat is not None:
-#             query = query.filter(ActypeSeat.seat >= min_seat)
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi server khi xóa cấu hình ghế: {str(e)}",
+        )
 
-#         if max_seat is not None:
-#             query = query.filter(ActypeSeat.seat <= max_seat)
 
-#         actype_seats = query.order_by(ActypeSeat.actype).all()
-#         return actype_seats
+@router.get("/search/", response_model=List[ActypeSeatResponse])
+async def search_actype_seats(
+    q: str = None,
+    min_seat: int = None,
+    max_seat: int = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Tìm kiếm cấu hình ghế theo các tiêu chí
+    """
 
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Lỗi server khi tìm kiếm cấu hình ghế: {str(e)}",
-#         )
+    try:
+        query = db.query(ActypeSeat)
+
+        if q:
+            query = query.filter(ActypeSeat.actype.contains(q.upper()))
+
+        if min_seat is not None:
+            query = query.filter(ActypeSeat.seat >= min_seat)
+
+        if max_seat is not None:
+            query = query.filter(ActypeSeat.seat <= max_seat)
+
+        actype_seats = query.order_by(ActypeSeat.actype).all()
+        return actype_seats
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi server khi tìm kiếm cấu hình ghế: {str(e)}",
+        )
 
 
 @router.get("/stats/summary", response_model=dict)

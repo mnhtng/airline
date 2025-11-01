@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List
 from datetime import datetime
 from backend.db.database import get_db
@@ -215,8 +216,13 @@ async def search_sector_route_dom_refs(q: str = None, db: Session = Depends(get_
         query = db.query(SectorRouteDomRef).order_by(SectorRouteDomRef.sector)
 
         if q:
+            search_term = f"%{q.lower().strip()}%"
             query = query.filter(
-                SectorRouteDomRef.sector.ilike(f"%{q.lower().strip()}%")
+                or_(
+                    SectorRouteDomRef.sector.ilike(search_term),
+                    SectorRouteDomRef.area_lv1.ilike(search_term),
+                    SectorRouteDomRef.dom_int.ilike(search_term),
+                )
             )
 
         sector_route_dom_refs = query.all()

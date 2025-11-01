@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
@@ -204,7 +205,16 @@ async def search_country_refs(q: str = None, db: Session = Depends(get_db)):
 
         if q:
             # Search is case-insensitive and ignores leading/trailing spaces
-            query = query.filter(CountryRef.country.ilike(f"%{q.lower().strip()}%"))
+            search_term = f"%{q.lower().strip()}%"
+            query = query.filter(
+                or_(
+                    CountryRef.country.ilike(search_term),
+                    CountryRef.region.ilike(search_term),
+                    CountryRef.region_vnm.ilike(search_term),
+                    CountryRef.two_letter_code.ilike(search_term),
+                    CountryRef.three_letter_code.ilike(search_term),
+                )
+            )
 
         country_refs = query.all()
         return [

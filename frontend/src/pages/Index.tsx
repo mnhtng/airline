@@ -675,8 +675,8 @@ const Index = () => {
             title: "Máy bay",
             description: "Quản lý thông tin số ghế máy bay.",
             href: {
-                dim: "/aircraft",
-                fact: "/"
+                dim: "/temp/aircraft",
+                fact: "/manager/aircraft"
             },
             color: "text-blue-600"
         },
@@ -685,8 +685,8 @@ const Index = () => {
             title: "Hãng hàng không",
             description: "Quản lý thông tin hãng hàng không.",
             href: {
-                dim: "/airline",
-                fact: "/"
+                dim: "/temp/airline",
+                fact: "/manager/airline"
             },
             color: "text-purple-600"
         },
@@ -695,8 +695,8 @@ const Index = () => {
             title: "Sân bay",
             description: "Quản lý thông tin sân bay.",
             href: {
-                dim: "/airport",
-                fact: "/"
+                dim: "/temp/airport",
+                fact: "/manager/airport"
             },
             color: "text-amber-600"
         },
@@ -705,18 +705,18 @@ const Index = () => {
             title: "Quốc gia",
             description: "Quản lý thông tin quốc gia.",
             href: {
-                dim: "/country",
-                fact: "/"
+                dim: "/temp/country",
+                fact: "/manager/country"
             },
             color: "text-cyan-600"
         },
         {
             icon: Route,
-            title: "Phân loại đường bay",
-            description: "Quản lý thông tin phân loại/sector của đường bay.",
+            title: "Tuyến bay",
+            description: "Quản lý thông tin tuyến bay và phân loại đường bay.",
             href: {
-                dim: "/sector-route",
-                fact: "/"
+                dim: "/temp/sector-route",
+                fact: "/manager/sector-route"
             },
             color: "text-green-600"
         },

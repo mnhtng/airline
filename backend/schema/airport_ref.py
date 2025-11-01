@@ -10,9 +10,7 @@ class AirportRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho AirportRef
     """
 
-    airport_code: str = Field(
-        ..., min_length=1, max_length=10, description="Mã sân bay"
-    )
+    iata_code: str = Field(..., min_length=1, max_length=10, description="Mã sân bay")
     airport_name: str = Field(
         ..., min_length=1, max_length=200, description="Tên sân bay"
     )
@@ -23,14 +21,14 @@ class AirportRefBase(BaseModel):
         ..., min_length=1, max_length=100, description="Quốc gia nơi sân bay được đặt"
     )
 
-    @field_validator("airport_code")
-    def validate_airport_code(cls, v):
-        """Validate airport code format"""
+    @field_validator("iata_code")
+    def validate_iata_code(cls, v):
+        """Validate iata code format"""
         v = v.upper().strip()
-        if not v or len(v) == 0:
-            raise ValueError("Mã sân bay không được để trống")
-        if len(v) < 3:
-            raise ValueError("Mã sân bay phải có ít nhất 3 ký tự")
+        if not v or len(v) != 3:
+            raise ValueError("Mã sân bay phải có đúng 3 ký tự")
+        if not v.isalpha():
+            raise ValueError("Mã sân bay chỉ được chứa ký tự chữ cái")
         return v
 
     @field_validator("airport_name")
@@ -67,7 +65,7 @@ class AirportRefCreate(AirportRefBase):
 class AirportRefUpdate(AirportRefBase):
     """Schema để cập nhật AirportRef"""
 
-    airport_code: Optional[str] = Field(
+    iata_code: Optional[str] = Field(
         None, min_length=0, max_length=10, description="Mã sân bay"
     )
     airport_name: Optional[str] = Field(
@@ -80,9 +78,9 @@ class AirportRefUpdate(AirportRefBase):
         None, min_length=0, max_length=100, description="Quốc gia nơi sân bay được đặt"
     )
 
-    @field_validator("airport_code")
-    def validate_airport_code(cls, v):
-        """Validate airport code format"""
+    @field_validator("iata_code")
+    def validate_iata_code(cls, v):
+        """Validate iata code format"""
         if v is not None:
             v = v.upper().strip()
             if not v or len(v) == 0:

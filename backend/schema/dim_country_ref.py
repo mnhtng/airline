@@ -35,13 +35,22 @@ class DimCountryRefBase(BaseModel):
                 raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
         return v
 
-    @field_validator("two_letter_code", "three_letter_code")
-    def validate_code(cls, v):
-        """Validate code format"""
+    @field_validator("two_letter_code")
+    def validate_two_letter_code(cls, v):
+        """Validate two letter code format"""
         if v is not None:
             v = v.upper().strip()
-            if not v or len(v) != 2 or len(v) != 3:
-                raise ValueError("Mã phải có đúng 2 hoặc 3 ký tự")
+            if not v or len(v) != 2:
+                raise ValueError("Mã 2 ký tự phải có đúng 2 ký tự")
+        return v
+
+    @field_validator("three_letter_code")
+    def validate_three_letter_code(cls, v):
+        """Validate three letter code format"""
+        if v is not None:
+            v = v.upper().strip()
+            if not v or len(v) != 3:
+                raise ValueError("Mã 3 ký tự phải có đúng 3 ký tự")
         return v
 
 
@@ -79,13 +88,22 @@ class DimCountryRefUpdate(BaseModel):
                 raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
         return v
 
-    @field_validator("two_letter_code", "three_letter_code")
-    def validate_code(cls, v):
-        """Validate code format"""
+    @field_validator("two_letter_code")
+    def validate_two_letter_code(cls, v):
+        """Validate two letter code format"""
         if v is not None:
             v = v.upper().strip()
-            if not v or len(v) != 2 or len(v) != 3:
-                raise ValueError("Mã phải có đúng 2 hoặc 3 ký tự")
+            if not v or len(v) != 2:
+                raise ValueError("Mã 2 ký tự phải có đúng 2 ký tự")
+        return v
+
+    @field_validator("three_letter_code")
+    def validate_three_letter_code(cls, v):
+        """Validate three letter code format"""
+        if v is not None:
+            v = v.upper().strip()
+            if not v or len(v) != 3:
+                raise ValueError("Mã 3 ký tự phải có đúng 3 ký tự")
         return v
 
 

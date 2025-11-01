@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List
 from datetime import datetime
 from backend.db.database import get_db
@@ -198,7 +199,15 @@ async def search_airport_refs(q: str = None, db: Session = Depends(get_db)):
         query = db.query(AirportRef).order_by(AirportRef.iata_code)
 
         if q:
-            query = query.filter(AirportRef.iata_code.ilike(f"%{q.lower().strip()}%"))
+            search_term = f"%{q.lower().strip()}%"
+            query = query.filter(
+                or_(
+                    AirportRef.iata_code.ilike(search_term),
+                    AirportRef.airport_name.ilike(search_term),
+                    AirportRef.city.ilike(search_term),
+                    AirportRef.country.ilike(search_term),
+                )
+            )
 
         airport_refs = query.all()
         return [
