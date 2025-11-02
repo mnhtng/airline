@@ -11,6 +11,8 @@ import {
     ChevronsLeft,
     ChevronsRight,
     Search,
+    FolderDown,
+    CalendarIcon,
 } from "lucide-react"
 import {
     Select,
@@ -44,6 +46,23 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import {
+    CalendarCell,
+    CalendarGrid,
+    CalendarGridBody,
+    CalendarGridHeader,
+    CalendarHeaderCell,
+    CalendarHeading,
+    RangeCalendar,
+} from "@/components/ui/calendar"
+import {
+    DatePickerContent,
+    DateRangePicker,
+} from "@/components/ui/date-range-picker"
+import { DateInput } from "@/components/ui/datefield"
+import { FieldGroup } from "@/components/ui/field"
+import { AsiaButton } from "@/components/ui/asia-button"
+import { format } from "date-fns"
 
 interface Airline {
     id: number;
@@ -56,6 +75,7 @@ interface Airline {
 
 const Airline = () => {
     const [data, setData] = useState<Airline[]>([])
+    const [exportData, setExportData] = useState<Airline[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -81,6 +101,7 @@ const Airline = () => {
             }
             const result = await response.json()
             setData(result)
+            setExportData(result)
             setError(null)
         } catch (error) {
             setError("Tải dữ liệu thất bại!")
@@ -96,6 +117,63 @@ const Airline = () => {
 
         return () => clearTimeout(debounceTimer);
     }, [searchTerm]);
+
+    const handleExport = () => {
+        const hiddenInputs = document.querySelectorAll('input.react-aria-Input[hidden][type="text"]');
+
+        const startValue = (hiddenInputs[0] as HTMLInputElement)?.value || null
+        const endValue = (hiddenInputs[1] as HTMLInputElement)?.value || null
+
+        if (!startValue || !endValue) {
+            toast.error("Vui lòng chọn khoảng thời gian để xuất dữ liệu!", {
+                description: "Chọn ngày bắt đầu và ngày kết thúc."
+            })
+            return
+        }
+
+        const start = new Date(startValue)
+        const end = new Date(endValue)
+
+        // Set giờ về 00:00:00.000 cho start và 23:59:59.999 cho end để bao gồm toàn bộ ngày
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+
+        const filteredData = exportData.filter(airline => {
+            const updateDate = airline.updated_at ? new Date(airline.updated_at) : new Date(airline.created_at);
+            return updateDate >= start && updateDate <= end;
+        })
+
+        if (filteredData.length === 0) {
+            toast.warning("Không có dữ liệu trong khoảng thời gian đã chọn!", {
+                description: "Vui lòng chọn khoảng thời gian khác."
+            })
+            return
+        }
+
+        import("xlsx").then((XLSX) => {
+            const excelData = filteredData.map((airline, index) => ({
+                "STT": index + 1,
+                "Mã Hãng": airline.carrier,
+                "Tên Hãng": airline.airlines_name,
+                "Quốc Gia": airline.airline_nation,
+                "Ngày Tạo": format(new Date(airline.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Ngày Cập Nhật": airline.updated_at ? format(new Date(airline.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            }))
+
+            const ws = XLSX.utils.json_to_sheet(excelData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Airlines")
+
+            if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
+                const fileName = `airlines_${format(start, "dd-MM-yyyy")}.xlsx`
+                XLSX.writeFile(wb, fileName)
+                return
+            }
+
+            const fileName = `airlines_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            XLSX.writeFile(wb, fileName)
+        })
+    }
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -208,65 +286,108 @@ const Airline = () => {
     return (
         <div className="min-h-screen">
             <div className="p-8 max-w-7xl mx-auto">
-                <div className="mb-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Quản Lý Hãng Hàng Không</h1>
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Tìm kiếm hãng hàng không..."
-                                className="pl-8 sm:w-[300px]"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                <h1 className="text-2xl font-bold text-center mb-10">Quản Lý Hãng Hàng Không</h1>
+
+                <div className="mb-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-5">
+                        <div className="flex items-center gap-2">
+                            <DateRangePicker className="min-w-[300px] space-y-1">
+                                <FieldGroup>
+                                    <DateInput variant="ghost" slot={"start"} />
+                                    <span aria-hidden className="px-2 text-sm text-muted-foreground">
+                                        -
+                                    </span>
+                                    <DateInput className="flex-1" variant="ghost" slot={"end"} />
+
+                                    <AsiaButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
+                                    >
+                                        <CalendarIcon aria-hidden className="size-4" />
+                                    </AsiaButton>
+                                </FieldGroup>
+
+                                <DatePickerContent>
+                                    <RangeCalendar>
+                                        <CalendarHeading />
+                                        <CalendarGrid>
+                                            <CalendarGridHeader>
+                                                {(day) => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
+                                            </CalendarGridHeader>
+                                            <CalendarGridBody>
+                                                {(date) => <CalendarCell date={date} />}
+                                            </CalendarGridBody>
+                                        </CalendarGrid>
+                                    </RangeCalendar>
+                                </DatePickerContent>
+                            </DateRangePicker>
+
+                            <Button
+                                variant="ghost"
+                                onClick={handleExport}
+                            >
+                                <FolderDown />
+                            </Button>
                         </div>
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    Thêm
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>{selectedAirline ? "Chỉnh Sửa Hãng Hàng Không" : "Thêm Hãng Hàng Không Mới"}</DialogTitle>
-                                    <DialogDescription>
-                                        {selectedAirline ? "Cập nhật thông tin hãng hàng không." : "Điền thông tin để tạo hãng hàng không mới."}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="carrier" className="text-right">
-                                            Mã Hãng
-                                        </Label>
-                                        <Input id="carrier" value={formData.carrier} onChange={handleFormChange} className="col-span-3" disabled={!!selectedAirline} />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="airlines_name" className="text-right">
-                                            Tên Hãng
-                                        </Label>
-                                        <Input id="airlines_name" value={formData.airlines_name} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="airline_nation" className="text-right">
-                                            Quốc Gia
-                                        </Label>
-                                        <Input id="airline_nation" value={formData.airline_nation} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="secondary">Hủy</Button>
-                                    </DialogClose>
-                                    <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
-                                        {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                        {selectedAirline ? "Lưu thay đổi" : "Tạo"}
+                        <div className="flex items-center gap-2 w-full lg:w-auto">
+                            <div className="relative w-full">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Tìm kiếm hãng hàng không..."
+                                    className="pl-8 lg:w-[300px]"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        Thêm
                                     </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle>{selectedAirline ? "Chỉnh Sửa Hãng Hàng Không" : "Thêm Hãng Hàng Không Mới"}</DialogTitle>
+                                        <DialogDescription>
+                                            {selectedAirline ? "Cập nhật thông tin hãng hàng không." : "Điền thông tin để tạo hãng hàng không mới."}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="carrier" className="text-right">
+                                                Mã Hãng
+                                            </Label>
+                                            <Input id="carrier" value={formData.carrier} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="airlines_name" className="text-right">
+                                                Tên Hãng
+                                            </Label>
+                                            <Input id="airlines_name" value={formData.airlines_name} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="airline_nation" className="text-right">
+                                                Quốc Gia
+                                            </Label>
+                                            <Input id="airline_nation" value={formData.airline_nation} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild>
+                                            <Button type="button" variant="secondary">Hủy</Button>
+                                        </DialogClose>
+                                        <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
+                                            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                                            {selectedAirline ? "Lưu thay đổi" : "Tạo"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 </div>
 

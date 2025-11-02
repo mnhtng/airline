@@ -11,6 +11,8 @@ import {
     ChevronsLeft,
     ChevronsRight,
     Search,
+    FolderDown,
+    CalendarIcon,
 } from "lucide-react"
 import {
     Select,
@@ -44,6 +46,23 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import {
+    CalendarCell,
+    CalendarGrid,
+    CalendarGridBody,
+    CalendarGridHeader,
+    CalendarHeaderCell,
+    CalendarHeading,
+    RangeCalendar,
+} from "@/components/ui/calendar"
+import {
+    DatePickerContent,
+    DateRangePicker,
+} from "@/components/ui/date-range-picker"
+import { DateInput } from "@/components/ui/datefield"
+import { FieldGroup } from "@/components/ui/field"
+import { AsiaButton } from "@/components/ui/asia-button"
+import { format } from "date-fns"
 
 interface Country {
     id: number;
@@ -58,6 +77,7 @@ interface Country {
 
 const Country = () => {
     const [data, setData] = useState<Country[]>([])
+    const [exportData, setExportData] = useState<Country[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -82,6 +102,7 @@ const Country = () => {
             }
             const result = await response.json()
             setData(result)
+            setExportData(result)
             setError(null)
         } catch (error) {
             setError("Tải dữ liệu thất bại!")
@@ -97,6 +118,65 @@ const Country = () => {
 
         return () => clearTimeout(debounceTimer);
     }, [searchTerm]);
+
+    const handleExport = () => {
+        const hiddenInputs = document.querySelectorAll('input.react-aria-Input[hidden][type="text"]');
+
+        const startValue = (hiddenInputs[0] as HTMLInputElement)?.value || null
+        const endValue = (hiddenInputs[1] as HTMLInputElement)?.value || null
+
+        if (!startValue || !endValue) {
+            toast.error("Vui lòng chọn khoảng thời gian để xuất dữ liệu!", {
+                description: "Chọn ngày bắt đầu và ngày kết thúc."
+            })
+            return
+        }
+
+        const start = new Date(startValue)
+        const end = new Date(endValue)
+
+        // Set giờ về 00:00:00.000 cho start và 23:59:59.999 cho end để bao gồm toàn bộ ngày
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+
+        const filteredData = exportData.filter(country => {
+            const updateDate = country.updated_at ? new Date(country.updated_at) : new Date(country.created_at);
+            return updateDate >= start && updateDate <= end;
+        })
+
+        if (filteredData.length === 0) {
+            toast.warning("Không có dữ liệu trong khoảng thời gian đã chọn!", {
+                description: "Vui lòng chọn khoảng thời gian khác."
+            })
+            return
+        }
+
+        import("xlsx").then((XLSX) => {
+            const excelData = filteredData.map((country, index) => ({
+                "STT": index + 1,
+                "Quốc Gia": country.country,
+                "Khu Vực (QT)": country.region,
+                "Khu Vực (VN)": country.region_vnm,
+                "Mã 2 Ký Tự": country.two_letter_code,
+                "Mã 3 Ký Tự": country.three_letter_code,
+                "Ngày Tạo": format(new Date(country.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Ngày Cập Nhật": country.updated_at ? format(new Date(country.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            }))
+
+            const ws = XLSX.utils.json_to_sheet(excelData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Countries")
+
+            if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
+                const fileName = `countries_${format(start, "dd-MM-yyyy")}.xlsx`
+                XLSX.writeFile(wb, fileName)
+                return
+            }
+
+            const fileName = `countries_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            XLSX.writeFile(wb, fileName)
+        })
+    }
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -219,65 +299,107 @@ const Country = () => {
     return (
         <div className="min-h-screen">
             <div className="p-8 max-w-7xl mx-auto">
-                <div className="mb-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Quản Lý Quốc Gia</h1>
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Tìm kiếm quốc gia..."
-                                className="pl-8 sm:w-[300px]"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                <h1 className="text-2xl font-bold text-center mb-10">Quản Lý Quốc Gia</h1>
+
+                <div className="mb-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-5">
+                        <div className="flex items-center gap-2">
+                            <DateRangePicker className="min-w-[300px] space-y-1">
+                                <FieldGroup>
+                                    <DateInput variant="ghost" slot={"start"} />
+                                    <span aria-hidden className="px-2 text-sm text-muted-foreground">
+                                        -
+                                    </span>
+                                    <DateInput className="flex-1" variant="ghost" slot={"end"} />
+
+                                    <AsiaButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
+                                    >
+                                        <CalendarIcon aria-hidden className="size-4" />
+                                    </AsiaButton>
+                                </FieldGroup>
+
+                                <DatePickerContent>
+                                    <RangeCalendar>
+                                        <CalendarHeading />
+                                        <CalendarGrid>
+                                            <CalendarGridHeader>
+                                                {(day) => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
+                                            </CalendarGridHeader>
+                                            <CalendarGridBody>
+                                                {(date) => <CalendarCell date={date} />}
+                                            </CalendarGridBody>
+                                        </CalendarGrid>
+                                    </RangeCalendar>
+                                </DatePickerContent>
+                            </DateRangePicker>
+                            <Button
+                                variant="ghost"
+                                onClick={handleExport}
+                            >
+                                <FolderDown />
+                            </Button>
                         </div>
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    Thêm
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[525px]">
-                                <DialogHeader>
-                                    <DialogTitle>{selectedCountry ? "Chỉnh Sửa Quốc Gia" : "Thêm Quốc Gia Mới"}</DialogTitle>
-                                    <DialogDescription>
-                                        {selectedCountry ? "Cập nhật thông tin quốc gia." : "Điền thông tin để tạo quốc gia mới."}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="country" className="text-right">Tên Quốc Gia</Label>
-                                        <Input id="country" value={formData.country} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="region" className="text-right">Khu Vực (QT)</Label>
-                                        <Input id="region" value={formData.region} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="region_vnm" className="text-right">Khu Vực (VN)</Label>
-                                        <Input id="region_vnm" value={formData.region_vnm} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="two_letter_code" className="text-right">Mã 2 Ký Tự</Label>
-                                        <Input id="two_letter_code" value={formData.two_letter_code} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="three_letter_code" className="text-right">Mã 3 Ký Tự</Label>
-                                        <Input id="three_letter_code" value={formData.three_letter_code} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild><Button type="button" variant="secondary">Hủy</Button></DialogClose>
-                                    <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
-                                        {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                        {selectedCountry ? "Lưu thay đổi" : "Tạo"}
+                        <div className="flex items-center gap-2 w-full lg:w-auto">
+                            <div className="relative w-full">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Tìm kiếm quốc gia..."
+                                    className="pl-8 lg:w-[300px]"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        Thêm
                                     </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[525px]">
+                                    <DialogHeader>
+                                        <DialogTitle>{selectedCountry ? "Chỉnh Sửa Quốc Gia" : "Thêm Quốc Gia Mới"}</DialogTitle>
+                                        <DialogDescription>
+                                            {selectedCountry ? "Cập nhật thông tin quốc gia." : "Điền thông tin để tạo quốc gia mới."}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="country" className="text-right">Tên Quốc Gia</Label>
+                                            <Input id="country" value={formData.country} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="region" className="text-right">Khu Vực (QT)</Label>
+                                            <Input id="region" value={formData.region} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="region_vnm" className="text-right">Khu Vực (VN)</Label>
+                                            <Input id="region_vnm" value={formData.region_vnm} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="two_letter_code" className="text-right">Mã 2 Ký Tự</Label>
+                                            <Input id="two_letter_code" value={formData.two_letter_code} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="three_letter_code" className="text-right">Mã 3 Ký Tự</Label>
+                                            <Input id="three_letter_code" value={formData.three_letter_code} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button type="button" variant="secondary">Hủy</Button></DialogClose>
+                                        <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
+                                            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                                            {selectedCountry ? "Lưu thay đổi" : "Tạo"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 </div>
 

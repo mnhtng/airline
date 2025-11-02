@@ -145,7 +145,7 @@ async def update_airline_ref(
         update_data = airline_ref_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_airline_ref, field, value)
-        setattr(db_airline_ref, "updated_at", datetime.now)
+        setattr(db_airline_ref, "updated_at", datetime.now())
 
         db.commit()
         db.refresh(db_airline_ref)
@@ -198,19 +198,21 @@ async def search_airline_refs(q: str = None, db: Session = Depends(get_db)):
     """
 
     try:
-        query = db.query(AirlineRef).order_by(AirlineRef.carrier)
-
-        if q:
-            search_term = f"%{q.lower().strip()}%"
-            query = query.filter(
+        # Using 'collate' for case-insensitive and accent-insensitive search in MSSQL
+        collation = "SQL_Latin1_General_CP1_CI_AI"
+        airline_refs = (
+            db.query(AirlineRef)
+            .filter(
                 or_(
-                    AirlineRef.carrier.ilike(search_term),
-                    AirlineRef.airlines_name.ilike(search_term),
-                    AirlineRef.airline_nation.ilike(search_term),
+                    AirlineRef.carrier.collate(collation).like(f"%{q}%"),
+                    AirlineRef.airline_nation.collate(collation).like(f"%{q}%"),
+                    AirlineRef.airlines_name.collate(collation).like(f"%{q}%"),
                 )
             )
+            .order_by(AirlineRef.carrier)
+            .all()
+        )
 
-        airline_refs = query.all()
         return [
             AirlineRefResponse(**airline_ref.to_dict()) for airline_ref in airline_refs
         ]

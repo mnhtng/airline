@@ -257,6 +257,8 @@ const DimAirline = () => {
     return (
         <div className="min-h-screen">
             <div className="p-8 max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold text-center mb-10">Nhập Dữ Liệu Hãng Hàng Không</h1>
+
                 <div className="mb-8 flex justify-center md:justify-between items-center">
                     <Button
                         variant="outline"

@@ -150,7 +150,7 @@ async def update_country_ref(
         update_data = country_ref_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_country_ref, field, value)
-        setattr(db_country_ref, "updated_at", datetime.now)
+        setattr(db_country_ref, "updated_at", datetime.now())
 
         db.commit()
         db.refresh(db_country_ref)
@@ -200,19 +200,18 @@ async def search_country_refs(q: str = None, db: Session = Depends(get_db)):
     Tìm kiếm quốc gia
     """
 
+    collation = "SQL_Latin1_General_CP1_CI_AI"
     try:
         query = db.query(CountryRef).order_by(CountryRef.country)
 
         if q:
-            # Search is case-insensitive and ignores leading/trailing spaces
-            search_term = f"%{q.lower().strip()}%"
             query = query.filter(
                 or_(
-                    CountryRef.country.ilike(search_term),
-                    CountryRef.region.ilike(search_term),
-                    CountryRef.region_vnm.ilike(search_term),
-                    CountryRef.two_letter_code.ilike(search_term),
-                    CountryRef.three_letter_code.ilike(search_term),
+                    CountryRef.country.collate(collation).like(f"%{q}%"),
+                    CountryRef.region.collate(collation).like(f"%{q}%"),
+                    CountryRef.region_vnm.collate(collation).like(f"%{q}%"),
+                    CountryRef.two_letter_code.collate(collation).like(f"%{q}%"),
+                    CountryRef.three_letter_code.collate(collation).like(f"%{q}%"),
                 )
             )
 

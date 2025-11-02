@@ -145,7 +145,7 @@ async def update_airport_ref(
         update_data = airport_ref_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_airport_ref, field, value)
-        setattr(db_airport_ref, "updated_at", datetime.now)
+        setattr(db_airport_ref, "updated_at", datetime.now())
 
         db.commit()
         db.refresh(db_airport_ref)
@@ -195,17 +195,17 @@ async def search_airport_refs(q: str = None, db: Session = Depends(get_db)):
     Tìm kiếm sân bay
     """
 
+    collation = "SQL_Latin1_General_CP1_CI_AI"
     try:
         query = db.query(AirportRef).order_by(AirportRef.iata_code)
 
         if q:
-            search_term = f"%{q.lower().strip()}%"
             query = query.filter(
                 or_(
-                    AirportRef.iata_code.ilike(search_term),
-                    AirportRef.airport_name.ilike(search_term),
-                    AirportRef.city.ilike(search_term),
-                    AirportRef.country.ilike(search_term),
+                    AirportRef.iata_code.collate(collation).like(f"%{q}%"),
+                    AirportRef.airport_name.collate(collation).like(f"%{q}%"),
+                    AirportRef.city.collate(collation).like(f"%{q}%"),
+                    AirportRef.country.collate(collation).like(f"%{q}%"),
                 )
             )
 

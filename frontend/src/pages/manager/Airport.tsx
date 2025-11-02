@@ -11,6 +11,8 @@ import {
     ChevronsLeft,
     ChevronsRight,
     Search,
+    FolderDown,
+    CalendarIcon,
 } from "lucide-react"
 import {
     Select,
@@ -44,6 +46,23 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import {
+    CalendarCell,
+    CalendarGrid,
+    CalendarGridBody,
+    CalendarGridHeader,
+    CalendarHeaderCell,
+    CalendarHeading,
+    RangeCalendar,
+} from "@/components/ui/calendar"
+import {
+    DatePickerContent,
+    DateRangePicker,
+} from "@/components/ui/date-range-picker"
+import { DateInput } from "@/components/ui/datefield"
+import { FieldGroup } from "@/components/ui/field"
+import { AsiaButton } from "@/components/ui/asia-button"
+import { format } from "date-fns"
 
 interface Airport {
     id: number;
@@ -57,6 +76,7 @@ interface Airport {
 
 const Airport = () => {
     const [data, setData] = useState<Airport[]>([])
+    const [exportData, setExportData] = useState<Airport[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -82,6 +102,7 @@ const Airport = () => {
             }
             const result = await response.json()
             setData(result)
+            setExportData(result)
             setError(null)
         } catch (error) {
             setError("Tải dữ liệu thất bại!")
@@ -97,6 +118,64 @@ const Airport = () => {
 
         return () => clearTimeout(debounceTimer);
     }, [searchTerm]);
+
+    const handleExport = () => {
+        const hiddenInputs = document.querySelectorAll('input.react-aria-Input[hidden][type="text"]');
+
+        const startValue = (hiddenInputs[0] as HTMLInputElement)?.value || null
+        const endValue = (hiddenInputs[1] as HTMLInputElement)?.value || null
+
+        if (!startValue || !endValue) {
+            toast.error("Vui lòng chọn khoảng thời gian để xuất dữ liệu!", {
+                description: "Chọn ngày bắt đầu và ngày kết thúc."
+            })
+            return
+        }
+
+        const start = new Date(startValue)
+        const end = new Date(endValue)
+
+        // Set giờ về 00:00:00.000 cho start và 23:59:59.999 cho end để bao gồm toàn bộ ngày
+        start.setHours(0, 0, 0, 0)
+        end.setHours(23, 59, 59, 999)
+
+        const filteredData = exportData.filter(airport => {
+            const updateDate = airport.updated_at ? new Date(airport.updated_at) : new Date(airport.created_at);
+            return updateDate >= start && updateDate <= end;
+        })
+
+        if (filteredData.length === 0) {
+            toast.warning("Không có dữ liệu trong khoảng thời gian đã chọn!", {
+                description: "Vui lòng chọn khoảng thời gian khác."
+            })
+            return
+        }
+
+        import("xlsx").then((XLSX) => {
+            const excelData = filteredData.map((airport, index) => ({
+                "STT": index + 1,
+                "Mã Sân Bay": airport.iata_code,
+                "Tên Sân Bay": airport.airport_name,
+                "Thành Phố": airport.city,
+                "Quốc Gia": airport.country,
+                "Ngày Tạo": format(new Date(airport.created_at), "dd-MM-yyyy HH:mm:ss"),
+                "Ngày Cập Nhật": airport.updated_at ? format(new Date(airport.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+            }))
+
+            const ws = XLSX.utils.json_to_sheet(excelData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Airports")
+
+            if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
+                const fileName = `airports_${format(start, "dd-MM-yyyy")}.xlsx`
+                XLSX.writeFile(wb, fileName)
+                return
+            }
+
+            const fileName = `airports_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            XLSX.writeFile(wb, fileName)
+        })
+    }
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -214,61 +293,104 @@ const Airport = () => {
     return (
         <div className="min-h-screen">
             <div className="p-8 max-w-7xl mx-auto">
-                <div className="mb-8 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Quản Lý Sân Bay</h1>
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Tìm kiếm sân bay..."
-                                className="pl-8 sm:w-[300px]"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                <h1 className="text-2xl font-bold text-center mb-10">Quản Lý Sân Bay</h1>
+
+                <div className="mb-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-center gap-5">
+                        <div className="flex items-center gap-2">
+                            <DateRangePicker className="min-w-[300px] space-y-1">
+                                <FieldGroup>
+                                    <DateInput variant="ghost" slot={"start"} />
+                                    <span aria-hidden className="px-2 text-sm text-muted-foreground">
+                                        -
+                                    </span>
+                                    <DateInput className="flex-1" variant="ghost" slot={"end"} />
+
+                                    <AsiaButton
+                                        variant="ghost"
+                                        size="icon"
+                                        className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
+                                    >
+                                        <CalendarIcon aria-hidden className="size-4" />
+                                    </AsiaButton>
+                                </FieldGroup>
+
+                                <DatePickerContent>
+                                    <RangeCalendar>
+                                        <CalendarHeading />
+                                        <CalendarGrid>
+                                            <CalendarGridHeader>
+                                                {(day) => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
+                                            </CalendarGridHeader>
+                                            <CalendarGridBody>
+                                                {(date) => <CalendarCell date={date} />}
+                                            </CalendarGridBody>
+                                        </CalendarGrid>
+                                    </RangeCalendar>
+                                </DatePickerContent>
+                            </DateRangePicker>
+
+                            <Button
+                                variant="ghost"
+                                onClick={handleExport}
+                            >
+                                <FolderDown />
+                            </Button>
                         </div>
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    Thêm
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>{selectedAirport ? "Chỉnh Sửa Sân Bay" : "Thêm Sân Bay Mới"}</DialogTitle>
-                                    <DialogDescription>
-                                        {selectedAirport ? "Cập nhật thông tin sân bay." : "Điền thông tin để tạo sân bay mới."}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="iata_code" className="text-right">Mã Sân Bay</Label>
-                                        <Input id="iata_code" value={formData.iata_code} onChange={handleFormChange} className="col-span-3" disabled={!!selectedAirport} />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="airport_name" className="text-right">Tên Sân Bay</Label>
-                                        <Input id="airport_name" value={formData.airport_name} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="city" className="text-right">Thành Phố</Label>
-                                        <Input id="city" value={formData.city} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="country" className="text-right">Quốc Gia</Label>
-                                        <Input id="country" value={formData.country} onChange={handleFormChange} className="col-span-3" />
-                                    </div>
-                                    {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild><Button type="button" variant="secondary">Hủy</Button></DialogClose>
-                                    <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
-                                        {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                        {selectedAirport ? "Lưu thay đổi" : "Tạo"}
+                        <div className="flex items-center gap-2 w-full lg:w-auto">
+                            <div className="relative w-full">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Tìm kiếm sân bay..."
+                                    className="pl-8 lg:w-[300px]"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={() => openDialog(null)} className="flex items-center gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        Thêm
                                     </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle>{selectedAirport ? "Chỉnh Sửa Sân Bay" : "Thêm Sân Bay Mới"}</DialogTitle>
+                                        <DialogDescription>
+                                            {selectedAirport ? "Cập nhật thông tin sân bay." : "Điền thông tin để tạo sân bay mới."}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="iata_code" className="text-right">Mã Sân Bay</Label>
+                                            <Input id="iata_code" value={formData.iata_code} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="airport_name" className="text-right">Tên Sân Bay</Label>
+                                            <Input id="airport_name" value={formData.airport_name} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="city" className="text-right">Thành Phố</Label>
+                                            <Input id="city" value={formData.city} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="country" className="text-right">Quốc Gia</Label>
+                                            <Input id="country" value={formData.country} onChange={handleFormChange} className="col-span-3" />
+                                        </div>
+                                        {formError && <p className="col-span-4 text-red-500 text-sm text-center">{formError}</p>}
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button type="button" variant="secondary">Hủy</Button></DialogClose>
+                                        <Button onClick={handleCreateOrUpdate} disabled={isSubmitting}>
+                                            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                                            {selectedAirport ? "Lưu thay đổi" : "Tạo"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 </div>
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -206,6 +207,7 @@ async def update_actype_seat(
         update_data = actype_seat_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(actype_seat, field, value)
+        setattr(actype_seat, "updated_at", datetime.now())
 
         db.commit()
         db.refresh(actype_seat)
@@ -266,9 +268,10 @@ async def search_actype_seats(
 
     try:
         query = db.query(ActypeSeat)
+        collation = "SQL_Latin1_General_CP1_CI_AI"
 
         if q:
-            query = query.filter(ActypeSeat.actype.contains(q.upper()))
+            query = query.filter(ActypeSeat.actype.collate(collation).like(f"%{q}%"))
 
         if min_seat is not None:
             query = query.filter(ActypeSeat.seat >= min_seat)

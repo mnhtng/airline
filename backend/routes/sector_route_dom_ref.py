@@ -156,7 +156,7 @@ async def update_sector_route_dom_ref(
         update_data = sector_route_dom_ref_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_sector_route_dom_ref, field, value)
-        setattr(db_sector_route_dom_ref, "updated_at", datetime.now)
+        setattr(db_sector_route_dom_ref, "updated_at", datetime.now())
 
         db.commit()
         db.refresh(db_sector_route_dom_ref)
@@ -212,16 +212,16 @@ async def search_sector_route_dom_refs(q: str = None, db: Session = Depends(get_
     Tìm kiếm phân loại tuyến bay
     """
 
+    collation = "SQL_Latin1_General_CP1_CI_AI"
     try:
         query = db.query(SectorRouteDomRef).order_by(SectorRouteDomRef.sector)
 
         if q:
-            search_term = f"%{q.lower().strip()}%"
             query = query.filter(
                 or_(
-                    SectorRouteDomRef.sector.ilike(search_term),
-                    SectorRouteDomRef.area_lv1.ilike(search_term),
-                    SectorRouteDomRef.dom_int.ilike(search_term),
+                    SectorRouteDomRef.sector.collate(collation).like(f"%{q}%"),
+                    SectorRouteDomRef.area_lv1.collate(collation).like(f"%{q}%"),
+                    SectorRouteDomRef.dom_int.collate(collation).like(f"%{q}%"),
                 )
             )
 
