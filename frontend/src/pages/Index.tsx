@@ -14,7 +14,9 @@ import {
     Building2,
     Landmark,
     Globe2,
-    Download
+    Download,
+    Database,
+    MapPin
 } from "lucide-react"
 import { useState, useRef } from "react"
 import { toast } from "sonner"
@@ -186,15 +188,8 @@ const Index = () => {
         await processExcelFiles(excelFiles)
     }
 
-    uploadedFiles.forEach((file) => {
-        console.log(file.name)
-    })
-
     const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || [])
-        files.forEach((file) => {
-            console.log(file.name)
-        })
         if (files.length === 0) return
 
         setIsUploading(true)
@@ -418,6 +413,8 @@ const Index = () => {
                 file_details: result.file_details,
                 processing_summary: result.processing_summary,
             })
+
+            console.log(result)
 
             if (result.success) {
                 // Build detailed success message
@@ -1071,19 +1068,19 @@ const Index = () => {
 
                         {/* Processing Result */}
                         {processResult && (
-                            <div className={`p-6 rounded-lg space-y-4 ${processResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                                {/* Header */}
-                                <div className="flex items-start space-x-3">
+                            <div className={`p-6 rounded-lg space-y-6 ${processResult.success ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
+                                {/* Header with Summary */}
+                                <div className="flex items-start space-x-3 flex-1">
                                     {processResult.success ? (
-                                        <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
+                                        <CheckCircle className="h-7 w-7 text-green-600 mt-0.5 flex-shrink-0" />
                                     ) : (
-                                        <AlertCircle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
+                                        <AlertCircle className="h-7 w-7 text-red-600 mt-0.5 flex-shrink-0" />
                                     )}
                                     <div className="flex-1">
-                                        <h4 className={`font-semibold text-lg ${processResult.success ? 'text-green-800' : 'text-red-800'}`}>
-                                            Kết quả xử lý dữ liệu
+                                        <h4 className={`font-bold text-xl ${processResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                                            {processResult.success ? 'Xử lý dữ liệu thành công' : 'Xử lý dữ liệu thất bại'}
                                         </h4>
-                                        <p className={`text-sm ${processResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                                        <p className={`text-sm mt-1 ${processResult.success ? 'text-green-700' : 'text-red-700'}`}>
                                             {processResult.message}
                                         </p>
                                     </div>
@@ -1091,53 +1088,176 @@ const Index = () => {
 
                                 {/* Processing Summary Statistics */}
                                 {processResult.processing_summary && (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-blue-600">
-                                                {processResult.processing_summary.raw_records || 0}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                Bản ghi gốc
-                                            </div>
-                                        </div>
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-green-600">
-                                                {processResult.processing_summary.processed_records || 0}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                Bản ghi đã xử lý
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h5 className="font-semibold text-primary text-base">Thống kê chi tiết</h5>
+                                            <div className="text-xs text-muted-foreground">
+                                                {(() => {
+                                                    const total = processResult.processing_summary.raw_records || 0
+                                                    const processed = processResult.processing_summary.processed_records || 0
+                                                    const successRate = total > 0 ? ((processed / total) * 100).toFixed(1) : '0'
+                                                    return `Tỷ lệ thành công: ${successRate}%`
+                                                })()
+                                                }
                                             </div>
                                         </div>
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-red-600">
-                                                {processResult.processing_summary.error_records || 0}
+
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                            {/* Raw Records */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-blue-200 hover:shadow-md transition-shadow group relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-blue-100 rounded-lg">
+                                                        <Database className="h-4 w-4 text-blue-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-blue-600">
+                                                    {processResult.processing_summary.raw_records?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Bản ghi gốc
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    flight_raw
+                                                </div>
                                             </div>
-                                            <div className="text-xs text-gray-600">
-                                                Lỗi
+
+                                            {/* Processed Records */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-green-200 hover:shadow-md transition-shadow relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-green-100 rounded-lg">
+                                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-green-600">
+                                                    {processResult.processing_summary.processed_records?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Đã xử lý
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    {(() => {
+                                                        const total = processResult.processing_summary.raw_records || 0
+                                                        const processed = processResult.processing_summary.processed_records || 0
+                                                        return total > 0 ? `${((processed / total) * 100).toFixed(1)}%` : '0%'
+                                                    })()}
+                                                </div>
+                                            </div>
+
+                                            {/* Error Records */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-red-200 hover:shadow-md transition-shadow relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-red-100 rounded-lg">
+                                                        <AlertCircle className="h-4 w-4 text-red-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-red-600">
+                                                    {processResult.processing_summary.error_records?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Lỗi validation
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    error_table
+                                                </div>
+                                            </div>
+
+                                            {/* Missing Actypes */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-orange-200 hover:shadow-md transition-shadow relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <Plane className="h-4 w-4 text-orange-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-orange-600">
+                                                    {processResult.processing_summary.missing_actypes?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Actypes thiếu
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    Cần bổ sung
+                                                </div>
+                                            </div>
+
+                                            {/* Missing Routes */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-orange-200 hover:shadow-md transition-shadow relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-orange-100 rounded-lg">
+                                                        <MapPin className="h-4 w-4 text-orange-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-orange-600">
+                                                    {processResult.processing_summary.missing_routes?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Routes thiếu
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    Cần bổ sung
+                                                </div>
+                                            </div>
+
+                                            {/* Imported Files */}
+                                            <div className="bg-white rounded-lg p-4 border-2 border-purple-200 hover:shadow-md transition-shadow relative">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="p-2 bg-purple-100 rounded-lg">
+                                                        <FileSpreadsheet className="h-4 w-4 text-purple-600" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-2xl font-bold text-purple-600">
+                                                    {processResult.processing_summary.imported_files?.toLocaleString() || 0}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium mt-1">
+                                                    Files imported
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                    import_log
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-orange-600">
-                                                {processResult.processing_summary.missing_actypes || 0}
+
+                                        {/* Progress Bar */}
+                                        <div className="bg-white rounded-lg p-4 border">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm font-medium text-gray-700">Tiến trình xử lý</span>
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                    {(() => {
+                                                        const total = processResult.processing_summary.raw_records || 0
+                                                        const processed = processResult.processing_summary.processed_records || 0
+                                                        return total > 0 ? `${((processed / total) * 100).toFixed(1)}%` : '0%'
+                                                    })()}
+                                                </span>
                                             </div>
-                                            <div className="text-xs text-gray-600">
-                                                Actypes thiếu
+                                            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                                <div
+                                                    className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                                                    style={{
+                                                        width: `${(() => {
+                                                            const total = processResult.processing_summary.raw_records || 0
+                                                            const processed = processResult.processing_summary.processed_records || 0
+                                                            return total > 0 ? (processed / total) * 100 : 0
+                                                        })()}%`
+                                                    }}
+                                                >
+                                                    {(() => {
+                                                        const total = processResult.processing_summary.raw_records || 0
+                                                        const processed = processResult.processing_summary.processed_records || 0
+                                                        const percent = total > 0 ? (processed / total) * 100 : 0
+                                                        return percent > 10 && (
+                                                            <span className="text-xs font-bold text-white">✓</span>
+                                                        )
+                                                    })()}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-orange-600">
-                                                {processResult.processing_summary.missing_routes || 0}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                Routes thiếu
-                                            </div>
-                                        </div>
-                                        <div className="bg-white rounded-lg p-3 border">
-                                            <div className="text-2xl font-bold text-gray-600">
-                                                {processResult.processing_summary.imported_files || 0}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                Files đã import
+                                            <div className="flex justify-between mt-2 text-xs text-gray-600">
+                                                <span>✅ {processResult.processing_summary.processed_records?.toLocaleString() || 0} thành công</span>
+                                                <span>❌ {processResult.processing_summary.error_records?.toLocaleString() || 0} lỗi</span>
                                             </div>
                                         </div>
                                     </div>
