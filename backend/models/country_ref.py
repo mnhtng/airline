@@ -23,19 +23,19 @@ class CountryRef(Base):
     __tablename__ = "Country_Ref"
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    country = Column("Country", String(100), nullable=False, comment="Country name")
-    region = Column("Region", String(100), nullable=False, comment="Region name")
+    country = Column("Country", String(255), nullable=True, comment="Country name")
+    region = Column("Region", String(255), nullable=True, comment="Region name")
     region_vnm = Column(
         "Region_(VNM)",
-        String(100),
+        String(255),
         nullable=True,
         comment="Region name in Vietnamese",
     )
     two_letter_code = Column(
-        "2_Letter_Code", String(2), nullable=False, comment="2-letter code"
+        "2_Letter_Code", String(2), nullable=True, comment="2-letter code"
     )
     three_letter_code = Column(
-        "3_Letter_Code", String(3), nullable=False, comment="3-letter code"
+        "3_Letter_Code", String(3), nullable=True, comment="3-letter code"
     )
     created_at = Column(
         DateTime, default=func.sysdatetime(), nullable=False, comment="Thời gian tạo"

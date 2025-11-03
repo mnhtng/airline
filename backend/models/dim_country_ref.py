@@ -23,11 +23,11 @@ class DimCountryRef(Base):
     __tablename__ = "Dim_Country_Ref"
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    country = Column("Country", String(100), nullable=True, comment="Country name")
-    region = Column("Region", String(100), nullable=True, comment="Region name")
+    country = Column("Country", String(255), nullable=True, comment="Country name")
+    region = Column("Region", String(255), nullable=True, comment="Region name")
     region_vnm = Column(
         "Region_(VNM)",
-        String(100),
+        String(255),
         nullable=True,
         comment="Region name in Vietnamese",
     )

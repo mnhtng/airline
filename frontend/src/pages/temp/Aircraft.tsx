@@ -39,6 +39,7 @@ interface AircraftProps {
 }
 
 interface AircraftDraftProps {
+    id: number
     actype: string
     seat?: number
     created_at: string
@@ -76,7 +77,8 @@ const DimAircraft = () => {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/temp-actype-import`)
             const result = await response.json()
 
-            result.map((row: any) => {
+            result.map((row: any, index: number) => {
+                row.id = index + 1
                 row.actype = ""
                 return row
             })
@@ -95,15 +97,16 @@ const DimAircraft = () => {
         getAircrafts()
     }, [])
 
-    const updateRow = (actype: string, field: keyof AircraftDraftProps, value: string | number) => {
+    const updateRow = (id: number, field: keyof AircraftDraftProps, value: string | number) => {
         setData((prev) => prev.map((row) => {
-            return row.actype === actype ? { ...row, [field]: value } : row;
+            return row.id === id ? { ...row, [field]: value } : row;
         }))
         setEdit(true)
     }
 
     const addRow = () => {
         const newRow: AircraftDraftProps = {
+            id: data.length + 1,
             actype: "",
             seat: undefined,
             created_at: new Date().toISOString()
@@ -345,14 +348,14 @@ const DimAircraft = () => {
                                     </tr>
                                 ) : data.map((row, index) => (
                                     <tr
-                                        key={row.actype}
+                                        key={row.id}
                                         className={`border-b border-slate-200/40 dark:border-slate-700/40 hover:bg-sky-200/35 dark:hover:bg-sky-800/30 transition-all duration-200 group ${index % 2 === 0 ? "bg-white/40 dark:bg-slate-900/40" : "bg-slate-50/20 dark:bg-slate-800/20"
                                             }`}
                                     >
                                         <td className="p-3">
                                             <Input
                                                 value={row.actype}
-                                                onChange={(e) => updateRow(row.actype, "actype", e.target.value.toUpperCase())}
+                                                onChange={(e) => updateRow(row.id, "actype", e.target.value.toUpperCase())}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 font-medium placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />
@@ -362,7 +365,7 @@ const DimAircraft = () => {
                                                 type="number"
                                                 min={1}
                                                 value={row.seat || ''}
-                                                onChange={(e) => updateRow(row.actype, "seat", parseInt(e.target.value) || 0)}
+                                                onChange={(e) => updateRow(row.id, "seat", parseInt(e.target.value) || 0)}
                                                 onFocus={(e) => e.target.select()}
                                                 className="border-1 bg-transparent p-2 h-auto focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white/60 dark:focus-visible:bg-slate-800/60 rounded-lg transition-all duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 placeholder:text-slate-400 placeholder:font-medium placeholder:italic"
                                             />

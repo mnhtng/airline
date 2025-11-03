@@ -10,42 +10,42 @@ class CountryRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho CountryRef
     """
 
-    country: str = Field(..., min_length=1, max_length=100, description="Tên quốc gia")
-    region: str = Field(..., min_length=1, max_length=100, description="Khu vực địa lý")
+    country: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Tên quốc gia"
+    )
+    region: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Khu vực địa lý"
+    )
     region_vnm: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Khu vực địa lý tiếng Việt"
+        None, min_length=0, max_length=255, description="Khu vực địa lý tiếng Việt"
     )
-    two_letter_code: str = Field(
-        ..., min_length=2, max_length=2, description="Mã 2 ký tự"
+    two_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=2, description="Mã 2 ký tự"
     )
-    three_letter_code: str = Field(
-        ..., min_length=3, max_length=3, description="Mã 3 ký tự"
+    three_letter_code: Optional[str] = Field(
+        None, min_length=0, max_length=3, description="Mã 3 ký tự"
     )
 
     @field_validator("country", "region", "region_vnm")
     def validate_name(cls, v):
         """Validate name format"""
-        if v is not None:
-            v = v.strip()
-            if not v:
-                raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
+        return v.strip() if v else None
 
     @field_validator("two_letter_code")
     def validate_two_letter_code(cls, v):
         """Validate two letter code format"""
-        v = v.upper().strip() if v is not None else ""
-        if not v or len(v) != 2:
+        if v and len(v) != 2:
             raise ValueError("Mã 2 ký tự phải có đúng 2 ký tự")
-        return v
+        return v.upper().strip() if v else None
 
     @field_validator("three_letter_code")
     def validate_three_letter_code(cls, v):
         """Validate three letter code format"""
-        v = v.upper().strip() if v is not None else ""
-        if not v or len(v) != 3:
+        if v and len(v) != 3:
             raise ValueError("Mã 3 ký tự phải có đúng 3 ký tự")
-        return v
+        return v.upper().strip() if v else None
 
 
 class CountryRefCreate(CountryRefBase):
@@ -58,13 +58,13 @@ class CountryRefUpdate(BaseModel):
     """Schema để cập nhật CountryRef"""
 
     country: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Tên quốc gia"
+        None, min_length=0, max_length=255, description="Tên quốc gia"
     )
     region: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Khu vực địa lý"
+        None, min_length=0, max_length=255, description="Khu vực địa lý"
     )
     region_vnm: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Khu vực địa lý tiếng Việt"
+        None, min_length=0, max_length=255, description="Khu vực địa lý tiếng Việt"
     )
     two_letter_code: Optional[str] = Field(
         None, min_length=0, max_length=2, description="Mã 2 ký tự"
@@ -76,29 +76,23 @@ class CountryRefUpdate(BaseModel):
     @field_validator("country", "region", "region_vnm")
     def validate_name(cls, v):
         """Validate name format"""
-        if v is not None:
-            v = v.strip() if v is not None else ""
-            if not v or len(v) == 0:
-                raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Tên quốc gia hoặc khu vực địa lý không được để trống")
+        return v.strip() if v else None
 
     @field_validator("two_letter_code")
     def validate_two_letter_code(cls, v):
         """Validate two letter code format"""
-        if v is not None:
-            v = v.upper().strip() if v is not None else ""
-            if not v or len(v) != 2:
-                raise ValueError("Mã 2 ký tự phải có đúng 2 ký tự")
-        return v
+        if v and len(v) != 2:
+            raise ValueError("Mã 2 ký tự phải có đúng 2 ký tự")
+        return v.upper().strip() if v else None
 
     @field_validator("three_letter_code")
     def validate_three_letter_code(cls, v):
         """Validate three letter code format"""
-        if v is not None:
-            v = v.upper().strip() if v is not None else ""
-            if not v or len(v) != 3:
-                raise ValueError("Mã 3 ký tự phải có đúng 3 ký tự")
-        return v
+        if v and len(v) != 3:
+            raise ValueError("Mã 3 ký tự phải có đúng 3 ký tự")
+        return v.upper().strip() if v else None
 
 
 class CountryRefInDB(CountryRefBase):

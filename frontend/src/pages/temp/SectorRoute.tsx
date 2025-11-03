@@ -119,12 +119,9 @@ const DimSectorRoute = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.sector &&
-            row.sector.trim() !== '' &&
-            row.area_lv1 &&
-            row.area_lv1.trim() !== '' &&
-            row.dom_int &&
-            row.dom_int.trim() !== ''
+            (row.sector && row.sector.trim() !== '') ||
+            (row.area_lv1 && row.area_lv1.trim() !== '') ||
+            (row.dom_int && row.dom_int.trim() !== '')
         )
 
         if (validData.length === 0) {

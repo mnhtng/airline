@@ -11,48 +11,40 @@ class DimSectorRouteDomRefBase(BaseModel):
     """
 
     sector: Optional[str] = Field(
-        None, min_length=0, max_length=20, description="Mã sector tuyến bay"
+        None, min_length=0, max_length=50, description="Mã sector tuyến bay"
     )
     area_lv1: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Khu vực/vùng địa lý level 1"
+        None, min_length=0, max_length=255, description="Khu vực/vùng địa lý level 1"
     )
     dom_int: Optional[str] = Field(
         None,
         min_length=0,
-        max_length=10,
-        description="Domestic (DOM) hoặc International (INT)",
+        max_length=20,
+        description="Nội địa / Quốc tế",
     )
 
     @field_validator("sector")
     def validate_sector(cls, v):
         """Validate sector format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Mã sector không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Mã sector không được để trống")
+        return v.strip() if v else None
 
     @field_validator("area_lv1")
     def validate_area_lv1(cls, v):
         """Validate area lv1 format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Khu vực/vùng địa lý level 1 không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Vùng cấp 1 không được để trống")
+        return v.strip() if v else None
 
     @field_validator("dom_int")
     def validate_dom_int(cls, v):
         """Validate dom int format"""
-        if v is not None:
-            v = v.strip()
-            if v and v not in ["DOM", "INT"]:
-                raise ValueError(
-                    "Domestic (DOM) hoặc International (INT) không được để trống"
-                )
-            if v not in ["DOM", "INT"]:
-                raise ValueError("Domestic (DOM) hoặc International (INT) không hợp lệ")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Nội địa / Quốc tế không được để trống")
+        if v and v not in ["DOM", "INT"]:
+            raise ValueError("Nội địa / Quốc tế không hợp lệ")
+        return v.strip() if v else None
 
 
 class DimSectorRouteDomRefCreate(DimSectorRouteDomRefBase):
@@ -65,48 +57,40 @@ class DimSectorRouteDomRefUpdate(DimSectorRouteDomRefBase):
     """Schema để cập nhật DimSectorRouteDomRef"""
 
     sector: Optional[str] = Field(
-        None, min_length=0, max_length=20, description="Mã sector tuyến bay"
+        None, min_length=0, max_length=50, description="Mã sector tuyến bay"
     )
     area_lv1: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Khu vực/vùng địa lý level 1"
+        None, min_length=0, max_length=255, description="Khu vực/vùng địa lý level 1"
     )
     dom_int: Optional[str] = Field(
         None,
         min_length=0,
-        max_length=10,
-        description="Domestic (DOM) hoặc International (INT)",
+        max_length=20,
+        description="Nội địa / Quốc tế",
     )
 
     @field_validator("sector")
     def validate_sector(cls, v):
         """Validate sector format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Mã sector không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Mã sector không được để trống")
+        return v.strip() if v else None
 
     @field_validator("area_lv1")
     def validate_area_lv1(cls, v):
         """Validate area lv1 format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Khu vực/vùng địa lý level 1 không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Vùng cấp 1 không được để trống")
+        return v.strip() if v else None
 
     @field_validator("dom_int")
     def validate_dom_int(cls, v):
         """Validate dom int format"""
-        if v is not None:
-            v = v.strip()
-            if v and v not in ["DOM", "INT"]:
-                raise ValueError(
-                    "Domestic (DOM) hoặc International (INT) không được để trống"
-                )
-            if v not in ["DOM", "INT"]:
-                raise ValueError("Domestic (DOM) hoặc International (INT) không hợp lệ")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Nội địa / Quốc tế không được để trống")
+        if v and v not in ["DOM", "INT"]:
+            raise ValueError("Nội địa / Quốc tế không hợp lệ")
+        return v.strip() if v else None
 
 
 class DimSectorRouteDomRefInDB(DimSectorRouteDomRefBase):

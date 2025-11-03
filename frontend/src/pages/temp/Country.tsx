@@ -125,16 +125,11 @@ const DimCountry = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.country &&
-            row.country.trim() !== '' &&
-            row.region &&
-            row.region.trim() !== '' &&
-            row.region_vnm &&
-            row.region_vnm.trim() !== '' &&
-            row.two_letter_code &&
-            row.two_letter_code.trim() !== '' &&
-            row.three_letter_code &&
-            row.three_letter_code.trim() !== ''
+            (row.country && row.country.trim() !== '') ||
+            (row.region && row.region.trim() !== '') ||
+            (row.region_vnm && row.region_vnm.trim() !== '') ||
+            (row.two_letter_code && row.two_letter_code.trim() !== '') ||
+            (row.three_letter_code && row.three_letter_code.trim() !== '')
         )
 
         if (validData.length === 0) {

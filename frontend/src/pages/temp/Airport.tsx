@@ -122,14 +122,10 @@ const DimAirport = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.iata_code &&
-            row.iata_code.trim() !== '' &&
-            row.airport_name &&
-            row.airport_name.trim() !== '' &&
-            row.city &&
-            row.city.trim() !== '' &&
-            row.country &&
-            row.country.trim() !== ''
+            (row.iata_code && row.iata_code.trim() !== '') ||
+            (row.airport_name && row.airport_name.trim() !== '') ||
+            (row.city && row.city.trim() !== '') ||
+            (row.country && row.country.trim() !== '')
         )
 
         if (validData.length === 0) {

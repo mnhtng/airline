@@ -10,41 +10,36 @@ class AirlineRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho AirlineRef
     """
 
-    carrier: str = Field(
-        ..., min_length=1, max_length=10, description="Mã hãng 2 ký tự (VD: VN, VJ)"
+    carrier: Optional[str] = Field(
+        None, min_length=0, max_length=50, description="Mã hãng 2 ký tự (VD: VN, VJ)"
     )
-    airline_nation: str = Field(
-        ..., min_length=1, max_length=100, description="Quốc gia của hãng hàng không"
+    airline_nation: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Quốc gia của hãng hàng không"
     )
-    airlines_name: str = Field(
-        ..., min_length=1, max_length=150, description="Tên đầy đủ của hãng hàng không"
+    airlines_name: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Tên đầy đủ của hãng hàng không"
     )
 
     @field_validator("carrier")
     def validate_carrier(cls, v):
         """Validate carrier code format"""
-        v = v.upper().strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Mã hãng không được để trống")
-        if len(v) < 2:
-            raise ValueError("Mã hãng phải có ít nhất 2 ký tự")
-        return v
+        return v.upper().strip() if v else None
 
     @field_validator("airline_nation")
     def validate_airline_nation(cls, v):
         """Validate airline nation format"""
-        v = v.strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Quốc gia của hãng hàng không không được để trống")
-        return v
+        return v.strip() if v else None
 
     @field_validator("airlines_name")
     def validate_airlines_name(cls, v):
         """Validate airlines name format"""
-        v = v.strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Tên đầy đủ của hãng hàng không không được để trống")
-        return v
+        return v.strip() if v else None
 
 
 class AirlineRefCreate(AirlineRefBase):
@@ -57,43 +52,35 @@ class AirlineRefUpdate(BaseModel):
     """Schema để cập nhật AirlineRef"""
 
     carrier: Optional[str] = Field(
-        None, min_length=0, max_length=10, description="Mã hãng 2 ký tự (VD: VN, VJ)"
+        None, min_length=0, max_length=50, description="Mã hãng 2 ký tự (VD: VN, VJ)"
     )
     airline_nation: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Quốc gia của hãng hàng không"
+        None, min_length=0, max_length=255, description="Quốc gia của hãng hàng không"
     )
     airlines_name: Optional[str] = Field(
-        None, min_length=0, max_length=150, description="Tên đầy đủ của hãng hàng không"
+        None, min_length=0, max_length=255, description="Tên đầy đủ của hãng hàng không"
     )
 
     @field_validator("carrier")
     def validate_carrier(cls, v):
         """Validate carrier code format"""
-        if v is not None:
-            v = v.upper().strip()
-            if not v or len(v) == 0:
-                raise ValueError("Mã hãng không được để trống")
-            if len(v) < 2:
-                raise ValueError("Mã hãng phải có ít nhất 2 ký tự")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Mã hãng không được để trống")
+        return v.upper().strip() if v else None
 
     @field_validator("airline_nation")
     def validate_airline_nation(cls, v):
         """Validate airline nation format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Quốc gia của hãng hàng không không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Quốc gia của hãng hàng không không được để trống")
+        return v.strip() if v else None
 
     @field_validator("airlines_name")
     def validate_airlines_name(cls, v):
         """Validate airlines name format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Tên đầy đủ của hãng hàng không không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Tên đầy đủ của hãng hàng không không được để trống")
+        return v.strip() if v else None
 
 
 class AirlineRefInDB(AirlineRefBase):

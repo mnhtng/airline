@@ -120,12 +120,9 @@ const DimAirline = () => {
     const handleSubmit = async () => {
         // Xử lý dữ liệu trước khi gửi
         const validData = data.filter(row =>
-            row.carrier &&
-            row.carrier.trim() !== '' &&
-            row.airline_nation &&
-            row.airline_nation.trim() !== '' &&
-            row.airlines_name &&
-            row.airlines_name.trim() !== ''
+            (row.carrier && row.carrier.trim() !== '') ||
+            (row.airline_nation && row.airline_nation.trim() !== '') ||
+            (row.airlines_name && row.airlines_name.trim() !== '')
         )
 
         if (validData.length === 0) {

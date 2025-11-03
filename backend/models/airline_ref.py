@@ -22,13 +22,13 @@ class AirlineRef(Base):
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     carrier = Column(
-        "CARRIER", String(10), nullable=False, comment="2-letter airline code"
+        "CARRIER", String(50), nullable=True, comment="2-letter airline code"
     )
     airline_nation = Column(
-        "Airline_Nation", String(100), nullable=False, comment="Country of airline"
+        "Airline_Nation", String(255), nullable=True, comment="Country of airline"
     )
     airlines_name = Column(
-        "Airlines_Name", String(150), nullable=False, comment="Full airline name"
+        "Airlines_Name", String(255), nullable=True, comment="Full airline name"
     )
     created_at = Column(
         DateTime, default=func.sysdatetime(), nullable=False, comment="Thời gian tạo"

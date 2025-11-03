@@ -10,50 +10,46 @@ class AirportRefBase(BaseModel):
     Định nghĩa các trường cơ bản cho AirportRef
     """
 
-    iata_code: str = Field(..., min_length=1, max_length=10, description="Mã sân bay")
-    airport_name: str = Field(
-        ..., min_length=1, max_length=200, description="Tên sân bay"
+    iata_code: Optional[str] = Field(
+        None, min_length=0, max_length=50, description="Mã sân bay"
     )
-    city: str = Field(
-        ..., min_length=1, max_length=100, description="Thành phố nơi sân bay được đặt"
+    airport_name: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Tên sân bay"
     )
-    country: str = Field(
-        ..., min_length=1, max_length=100, description="Quốc gia nơi sân bay được đặt"
+    city: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Thành phố nơi sân bay được đặt"
+    )
+    country: Optional[str] = Field(
+        None, min_length=0, max_length=255, description="Quốc gia nơi sân bay được đặt"
     )
 
     @field_validator("iata_code")
     def validate_iata_code(cls, v):
         """Validate iata code format"""
-        v = v.upper().strip()
-        if not v or len(v) != 3:
-            raise ValueError("Mã sân bay phải có đúng 3 ký tự")
-        if not v.isalpha():
-            raise ValueError("Mã sân bay chỉ được chứa ký tự chữ cái")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Mã sân bay không được để trống")
+        return v.upper().strip() if v else None
 
     @field_validator("airport_name")
     def validate_airport_name(cls, v):
         """Validate airport name format"""
-        v = v.strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Tên sân bay không được để trống")
-        return v
+        return v.strip() if v else None
 
     @field_validator("city")
     def validate_city(cls, v):
         """Validate city format"""
-        v = v.strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Thành phố nơi sân bay được đặt không được để trống")
-        return v
+        return v.strip() if v else None
 
     @field_validator("country")
     def validate_country(cls, v):
         """Validate country format"""
-        v = v.strip()
-        if not v or len(v) == 0:
+        if v and len(v) == 0:
             raise ValueError("Quốc gia nơi sân bay được đặt không được để trống")
-        return v
+        return v.strip() if v else None
 
 
 class AirportRefCreate(AirportRefBase):
@@ -66,55 +62,45 @@ class AirportRefUpdate(AirportRefBase):
     """Schema để cập nhật AirportRef"""
 
     iata_code: Optional[str] = Field(
-        None, min_length=0, max_length=10, description="Mã sân bay"
+        None, min_length=0, max_length=50, description="Mã sân bay"
     )
     airport_name: Optional[str] = Field(
-        None, min_length=0, max_length=200, description="Tên sân bay"
+        None, min_length=0, max_length=255, description="Tên sân bay"
     )
     city: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Thành phố nơi sân bay được đặt"
+        None, min_length=0, max_length=255, description="Thành phố nơi sân bay được đặt"
     )
     country: Optional[str] = Field(
-        None, min_length=0, max_length=100, description="Quốc gia nơi sân bay được đặt"
+        None, min_length=0, max_length=255, description="Quốc gia nơi sân bay được đặt"
     )
 
     @field_validator("iata_code")
     def validate_iata_code(cls, v):
         """Validate iata code format"""
-        if v is not None:
-            v = v.upper().strip()
-            if not v or len(v) == 0:
-                raise ValueError("Mã sân bay không được để trống")
-            if len(v) < 3:
-                raise ValueError("Mã sân bay phải có ít nhất 3 ký tự")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Mã sân bay không được để trống")
+        return v.upper().strip() if v else None
 
     @field_validator("airport_name")
     def validate_airport_name(cls, v):
         """Validate airport name format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Tên sân bay không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Tên sân bay không được để trống")
+        return v.strip() if v else None
 
     @field_validator("city")
     def validate_city(cls, v):
         """Validate city format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Thành phố nơi sân bay được đặt không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Thành phố nơi sân bay được đặt không được để trống")
+        return v.strip() if v else None
 
     @field_validator("country")
     def validate_country(cls, v):
         """Validate country format"""
-        if v is not None:
-            v = v.strip()
-            if not v or len(v) == 0:
-                raise ValueError("Quốc gia nơi sân bay được đặt không được để trống")
-        return v
+        if v and len(v) == 0:
+            raise ValueError("Quốc gia nơi sân bay được đặt không được để trống")
+        return v.strip() if v else None
 
 
 class AirportRefInDB(AirportRefBase):

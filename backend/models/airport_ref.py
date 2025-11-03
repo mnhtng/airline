@@ -23,18 +23,18 @@ class AirportRef(Base):
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     iata_code = Column(
-        "IATACode", String(10), nullable=False, comment="3-letter IATA airport code"
+        "IATACode", String(50), nullable=True, comment="3-letter IATA airport code"
     )
     airport_name = Column(
-        "Airport_Name", String(200), nullable=False, comment="Full airport name"
+        "Airport_Name", String(255), nullable=True, comment="Full airport name"
     )
     city = Column(
-        "City", String(100), nullable=False, comment="City where airport is located"
+        "City", String(255), nullable=True, comment="City where airport is located"
     )
     country = Column(
         "Country",
-        String(100),
-        nullable=False,
+        String(255),
+        nullable=True,
         comment="Country where airport is located",
     )
     created_at = Column(

@@ -21,17 +21,17 @@ class SectorRouteDomRef(Base):
     __tablename__ = "Sector_Route_DOM_Ref"
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
-    sector = Column("Sector", String(20), nullable=False, comment="Route sector code")
+    sector = Column("Sector", String(50), nullable=True, comment="Route sector code")
     area_lv1 = Column(
         "Area_Lv1",
-        String(100),
-        nullable=False,
+        String(255),
+        nullable=True,
         comment="Geographic area/region level 1 (e.g., Asia, Europe, etc.)",
     )
     dom_int = Column(
         "DOM/INT",
-        String(10),
-        nullable=False,
+        String(20),
+        nullable=True,
         comment="Domestic (DOM) or International (INT)",
     )
     created_at = Column(

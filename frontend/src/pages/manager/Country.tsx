@@ -420,11 +420,11 @@ const Country = () => {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan={7} className="py-6 text-center"><Loading /></td></tr>
+                                    <tr><td colSpan={8} className="py-6 text-center"><Loading /></td></tr>
                                 ) : error ? (
-                                    <tr><td colSpan={7}><ErrorBanner title={error} description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại." retry={() => getCountries(searchTerm)} /></td></tr>
+                                    <tr><td colSpan={8}><ErrorBanner title={error} description="Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại." retry={() => getCountries(searchTerm)} /></td></tr>
                                 ) : data.length === 0 ? (
-                                    <tr><td colSpan={7} className="p-3 text-center text-slate-500">Không có dữ liệu</td></tr>
+                                    <tr><td colSpan={8} className="p-3 text-center text-slate-500">Không có dữ liệu</td></tr>
                                 ) : paginatedData.map((item, index) => (
                                     <tr key={item.id} className={`border-b border-slate-200/40 dark:border-slate-700/40 hover:bg-sky-200/35 dark:hover:bg-sky-800/30 transition-all duration-200 group ${index % 2 === 0 ? "bg-white/40 dark:bg-slate-900/40" : "bg-slate-50/20 dark:bg-slate-800/20"}`}>
                                         <td className="p-3 font-medium">{item.country}</td>
