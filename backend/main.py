@@ -27,8 +27,10 @@ app = FastAPI(
     title="Airline API",
     description="API for managing airline reservations",
     version="1.0.0",
+    openapi_version="3.1.0",  # Explicit OpenAPI version
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_url="/openapi.json",  # Explicit OpenAPI schema URL
     contact={
         "name": "Airline API Support",
         "url": "http://localhost:8000/docs",
