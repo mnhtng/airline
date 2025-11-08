@@ -109,6 +109,31 @@ sudo docker ps
 
 # Create database using sqlcmd
 docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -Q "CREATE DATABASE flight;"
+
+# Run SQL scripts - Option 1: Pipe từ host (khuyến nghị)
+echo "Running flight-raw.sql..."
+cat /var/www/airline/backend/flight-raw.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -d flight
+
+echo "Running flight-update.sql..."
+cat /var/www/airline/backend/flight-update.sql | docker exec -i sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -d flight
+
+# Run SQL scripts - Option 2: Copy files vào container
+docker cp /var/www/airline/backend/flight-raw.sql sqlserver:/tmp/flight-raw.sql
+docker cp /var/www/airline/backend/flight-update.sql sqlserver:/tmp/flight-update.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -d flight -i /tmp/flight-raw.sql
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -d flight -i /tmp/flight-update.sql
+
+# Run SQL scripts - Option 3: Dùng script tự động (tốt nhất)
+chmod +x /var/www/airline/scripts/init-database.sh
+/var/www/airline/scripts/init-database.sh
+
+# Verify tables
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P "tunghpvn123" -C \
+  -d flight \
+  -Q "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;"
+
+
 ```
 
 ---
