@@ -1238,8 +1238,14 @@ if results["processed_files"] > 0:
         db.execute(text("EXEC usp_CleanAndValidateFlightData"))
         db.commit()
 
-        # Get processing summary
-        results["processing_summary"] = processor.get_processing_summary()
+        # Get processing summary for CURRENT BATCH only
+        # Extract file names from file_details
+        processed_file_names = [
+            detail["file_name"] for detail in results["file_details"]
+        ]
+        results["processing_summary"] = processor.get_current_session_summary(
+            processed_file_names
+        )
 
         print("✅ Hoàn thành quá trình làm sạch và xử lý dữ liệu")
 
@@ -1367,55 +1373,237 @@ END
 
 #### 5.3. Lấy Processing Summary
 
-**Method:** `processor.get_processing_summary()`
+##### 5.3.1. Method: `get_processing_summary()` - Toàn bộ Database
+
+**Mô tả**: Lấy thống kê **TẤT CẢ** dữ liệu trong database (dùng cho dashboard tổng quan)
+
+**Sử dụng**: Endpoint `/processing-summary`
 
 ```python
-def get_processing_summary(self) -> dict:
+def get_processing_summary(self) -> Dict[str, Any]:
     """
-    Lấy thống kê quá trình xử lý
+    Lấy tóm tắt quá trình xử lý dữ liệu theo schema thực tế (TOÀN BỘ DATABASE)
     """
-    from sqlalchemy import func
-    from backend.models.flight_raw import FlightRaw
-    from backend.models.error_table import ErrorTable
-    from backend.models.missing_dimensions_log import MissingDimensionsLog
-    from backend.models.flight_data_chot import FlightDataChot
-    from backend.models.import_log import ImportLog
-    
-    # Count records in each table
-    raw_count = self.db.query(func.count(FlightRaw.id)).scalar()
-    processed_count = self.db.query(func.count(FlightDataChot.id)).scalar()
-    error_count = self.db.query(func.count(ErrorTable.id)).scalar()
-    
-    # Count missing dimensions
-    missing_actypes = self.db.query(MissingDimensionsLog).filter(
-        MissingDimensionsLog.type == 'ACTYPE'
-    ).count()
-    
-    missing_routes = self.db.query(MissingDimensionsLog).filter(
-        MissingDimensionsLog.type == 'ROUTE'
-    ).count()
-    
-    # Count imported files
-    imported_files = self.db.query(func.count(ImportLog.id)).scalar()
-    
-    return {
-        "raw_records": raw_count,
-        "processed_records": processed_count,
-        "error_records": error_count,
-        "missing_actypes": missing_actypes,
-        "missing_routes": missing_routes,
-        "imported_files": imported_files
-    }
+    try:
+        # Get total records in each table
+        raw_count_result = self.db.execute(
+            text("SELECT COUNT(*) FROM flight_raw")
+        ).fetchone()
+
+        processed_count_result = self.db.execute(
+            text("SELECT COUNT(*) FROM flight_data_chot")
+        ).fetchone()
+
+        error_count_result = self.db.execute(
+            text("SELECT COUNT(*) FROM error_table")
+        ).fetchone()
+
+        missing_actype_result = self.db.execute(
+            text("SELECT COUNT(*) FROM Missing_Dimensions_Log WHERE Type = 'ACTYPE'")
+        ).fetchone()
+
+        missing_route_result = self.db.execute(
+            text("SELECT COUNT(*) FROM Missing_Dimensions_Log WHERE Type = 'ROUTE'")
+        ).fetchone()
+
+        imported_files_result = self.db.execute(
+            text("SELECT COUNT(*) FROM import_log")
+        ).fetchone()
+
+        return {
+            "raw_records": raw_count_result[0] if raw_count_result else 0,
+            "processed_records": processed_count_result[0] if processed_count_result else 0,
+            "error_records": error_count_result[0] if error_count_result else 0,
+            "missing_actypes": missing_actype_result[0] if missing_actype_result else 0,
+            "missing_routes": missing_route_result[0] if missing_route_result else 0,
+            "imported_files": imported_files_result[0] if imported_files_result else 0,
+        }
+    except Exception as e:
+        logging.error(f"Lỗi lấy tóm tắt quá trình xử lý dữ liệu: {e}")
+        return {
+            "raw_records": 0,
+            "processed_records": 0,
+            "error_records": 0,
+            "missing_actypes": 0,
+            "missing_routes": 0,
+            "imported_files": 0,
+        }
 ```
 
 **Returns:**
 
-- `raw_records`: Tổng bản ghi trong `flight_raw`
-- `processed_records`: Bản ghi đã xử lý thành công trong `flight_data_chot`
-- `error_records`: Bản ghi lỗi trong `error_table`
-- `missing_actypes`: Số lượng aircraft types thiếu
-- `missing_routes`: Số lượng routes thiếu
-- `imported_files`: Tổng số files đã import
+- `raw_records`: Tổng bản ghi trong `flight_raw` (toàn bộ DB)
+- `processed_records`: Bản ghi đã xử lý thành công trong `flight_data_chot` (toàn bộ DB)
+- `error_records`: Bản ghi lỗi trong `error_table` (toàn bộ DB)
+- `missing_actypes`: Số lượng aircraft types thiếu (toàn bộ DB)
+- `missing_routes`: Số lượng routes thiếu (toàn bộ DB)
+- `imported_files`: Tổng số files đã import (toàn bộ DB)
+
+##### 5.3.2. Method: `get_current_session_summary(source_files)` - Batch hiện tại
+
+**Mô tả**: Lấy thống kê **CHỈ CHO BATCH HIỆN TẠI** (filtered theo danh sách files đã upload)
+
+**Sử dụng**: Endpoint `/upload-files` và `/complete-workflow`
+
+```python
+def get_current_session_summary(self, source_files: List[str]) -> Dict[str, Any]:
+    """
+    Lấy tóm tắt quá trình xử lý CHỈ CHO BATCH HIỆN TẠI (filtered by source files)
+
+    Args:
+        source_files: Danh sách tên files đã xử lý trong session hiện tại
+
+    Returns:
+        Dict[str, Any]: Tóm tắt quá trình xử lý của batch hiện tại
+    """
+    try:
+        if not source_files:
+            return {
+                "raw_records": 0,
+                "processed_records": 0,
+                "error_records": 0,
+                "missing_actypes": 0,
+                "missing_routes": 0,
+                "imported_files": 0,
+            }
+
+        # Build IN clause for SQL query
+        files_placeholder = ", ".join([f":file_{i}" for i in range(len(source_files))])
+        files_params = {f"file_{i}": file for i, file in enumerate(source_files)}
+
+        # Get records count from flight_raw for current batch
+        raw_count_result = self.db.execute(
+            text(f"SELECT COUNT(*) FROM flight_raw WHERE source IN ({files_placeholder})"),
+            files_params
+        ).fetchone()
+
+        # Get records count from flight_data_chot for current batch
+        processed_count_result = self.db.execute(
+            text(f"SELECT COUNT(*) FROM flight_data_chot WHERE source IN ({files_placeholder})"),
+            files_params
+        ).fetchone()
+
+        # Get records count from error_table for current batch
+        error_count_result = self.db.execute(
+            text(f"SELECT COUNT(*) FROM error_table WHERE source IN ({files_placeholder})"),
+            files_params
+        ).fetchone()
+
+        # Get missing actypes from error_table for current batch
+        missing_actype_result = self.db.execute(
+            text(f"""
+                SELECT COUNT(DISTINCT actype) 
+                FROM error_table 
+                WHERE source IN ({files_placeholder})
+                AND Is_InvalidActypeSeat = 1
+                AND actype IS NOT NULL
+            """),
+            files_params
+        ).fetchone()
+
+        # Get missing routes from error_table for current batch
+        missing_route_result = self.db.execute(
+            text(f"""
+                SELECT COUNT(DISTINCT route) 
+                FROM error_table 
+                WHERE source IN ({files_placeholder})
+                AND Is_InvalidRoute = 1
+                AND route IS NOT NULL
+            """),
+            files_params
+        ).fetchone()
+
+        # Get imported files count for current batch
+        imported_files_result = self.db.execute(
+            text(f"SELECT COUNT(*) FROM import_log WHERE file_name IN ({files_placeholder})"),
+            files_params
+        ).fetchone()
+
+        return {
+            "raw_records": raw_count_result[0] if raw_count_result else 0,
+            "processed_records": processed_count_result[0] if processed_count_result else 0,
+            "error_records": error_count_result[0] if error_count_result else 0,
+            "missing_actypes": missing_actype_result[0] if missing_actype_result else 0,
+            "missing_routes": missing_route_result[0] if missing_route_result else 0,
+            "imported_files": imported_files_result[0] if imported_files_result else 0,
+        }
+
+    except Exception as e:
+        logging.error(f"Lỗi lấy tóm tắt batch hiện tại: {e}")
+        return {
+            "raw_records": 0,
+            "processed_records": 0,
+            "error_records": 0,
+            "missing_actypes": 0,
+            "missing_routes": 0,
+            "imported_files": 0,
+        }
+```
+
+**Parameters:**
+
+- `source_files`: List các tên files đã xử lý trong batch hiện tại (VD: `["MN_Jan_2024.xlsx", "MB_Jan_2024.xlsx"]`)
+
+**Returns:**
+
+- `raw_records`: Bản ghi trong `flight_raw` từ batch hiện tại
+- `processed_records`: Bản ghi trong `flight_data_chot` từ batch hiện tại
+- `error_records`: Bản ghi lỗi trong `error_table` từ batch hiện tại
+- `missing_actypes`: Số lượng DISTINCT actypes thiếu từ batch hiện tại
+- `missing_routes`: Số lượng DISTINCT routes thiếu từ batch hiện tại
+- `imported_files`: Số files đã import trong batch hiện tại
+
+**Cách sử dụng trong endpoint:**
+
+```python
+# Extract file names from file_details
+processed_file_names = [
+    detail["file_name"] for detail in results["file_details"]
+]
+
+# Get processing summary for CURRENT BATCH only
+results["processing_summary"] = processor.get_current_session_summary(
+    processed_file_names
+)
+```
+
+##### 5.3.3. So sánh hai methods
+
+| Aspect | `get_processing_summary()` | `get_current_session_summary()` |
+|--------|---------------------------|--------------------------------|
+| **Scope** | Toàn bộ database | Batch hiện tại (filtered) |
+| **Filter** | Không filter | Filter theo `source` column |
+| **Use case** | Dashboard, tổng quan | Upload workflow, batch result |
+| **Performance** | Chậm hơn (full table scan) | Nhanh hơn (indexed filter) |
+| **Endpoint** | `GET /processing-summary` | `POST /upload-files`, `/complete-workflow` |
+
+**Ví dụ kết quả:**
+
+Upload 3 files với 450 records:
+
+```json
+// Trước đây (❌ - dùng get_processing_summary)
+{
+    "processed_files": 3,
+    "total_rows": 450,
+    "processing_summary": {
+        "raw_records": 10000,      // ❌ Tất cả trong DB
+        "processed_records": 9500,  // ❌ Tất cả trong DB
+        "error_records": 500        // ❌ Tất cả trong DB
+    }
+}
+
+// Bây giờ (✅ - dùng get_current_session_summary)
+{
+    "processed_files": 3,
+    "total_rows": 450,
+    "processing_summary": {
+        "raw_records": 450,        // ✅ Chỉ 3 files vừa upload
+        "processed_records": 420,  // ✅ Chỉ 3 files vừa upload
+        "error_records": 30        // ✅ Chỉ 3 files vừa upload
+    }
+}
+```
 
 ---
 

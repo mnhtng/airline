@@ -1089,17 +1089,8 @@ const Index = () => {
                                 {/* Processing Summary Statistics */}
                                 {processResult.processing_summary && (
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center">
                                             <h5 className="font-semibold text-primary text-base">Thống kê chi tiết</h5>
-                                            <div className="text-xs text-muted-foreground">
-                                                {(() => {
-                                                    const total = processResult.processing_summary.raw_records || 0
-                                                    const processed = processResult.processing_summary.processed_records || 0
-                                                    const successRate = total > 0 ? ((processed / total) * 100).toFixed(1) : '0'
-                                                    return `Tỷ lệ thành công: ${successRate}%`
-                                                })()
-                                                }
-                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1219,45 +1210,6 @@ const Index = () => {
                                                 <div className="text-xs text-gray-500 mt-0.5">
                                                     import_log
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress Bar */}
-                                        <div className="bg-white rounded-lg p-4 border">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm font-medium text-gray-700">Tiến trình xử lý</span>
-                                                <span className="text-sm font-semibold text-gray-900">
-                                                    {(() => {
-                                                        const total = processResult.processing_summary.raw_records || 0
-                                                        const processed = processResult.processing_summary.processed_records || 0
-                                                        return total > 0 ? `${((processed / total) * 100).toFixed(1)}%` : '0%'
-                                                    })()}
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                                <div
-                                                    className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
-                                                    style={{
-                                                        width: `${(() => {
-                                                            const total = processResult.processing_summary.raw_records || 0
-                                                            const processed = processResult.processing_summary.processed_records || 0
-                                                            return total > 0 ? (processed / total) * 100 : 0
-                                                        })()}%`
-                                                    }}
-                                                >
-                                                    {(() => {
-                                                        const total = processResult.processing_summary.raw_records || 0
-                                                        const processed = processResult.processing_summary.processed_records || 0
-                                                        const percent = total > 0 ? (processed / total) * 100 : 0
-                                                        return percent > 10 && (
-                                                            <span className="text-xs font-bold text-white">✓</span>
-                                                        )
-                                                    })()}
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between mt-2 text-xs text-gray-600">
-                                                <span>✅ {processResult.processing_summary.processed_records?.toLocaleString() || 0} thành công</span>
-                                                <span>❌ {processResult.processing_summary.error_records?.toLocaleString() || 0} lỗi</span>
                                             </div>
                                         </div>
                                     </div>

@@ -619,8 +619,14 @@ async def upload_excel_files(
                     db.execute(text("EXEC usp_CleanAndValidateFlightData"))
                     db.commit()
 
-                    # Get processing summary
-                    results["processing_summary"] = processor.get_processing_summary()
+                    # Get processing summary for CURRENT BATCH only
+                    # Extract file names from file_details
+                    processed_file_names = [
+                        detail["file_name"] for detail in results["file_details"]
+                    ]
+                    results["processing_summary"] = processor.get_current_session_summary(
+                        processed_file_names
+                    )
 
                     print("✅ Hoàn thành quá trình làm sạch và xử lý dữ liệu")
 
@@ -669,9 +675,8 @@ async def complete_data_processing_workflow(
 
         print(f"✅ Step 1 hoàn thành: Upload {upload_result['processed_files']} files")
 
-        # Step 2: Get processing summary after initial processing
-        processor = ExcelBatchProcessor(db)
-        summary_after_processing = processor.get_processing_summary()
+        # Step 2: Get processing summary from upload result (already contains current batch summary)
+        summary_after_processing = upload_result.get("processing_summary", {})
 
         print(f"📊 Step 2: Summary sau xử lý - {summary_after_processing}")
 

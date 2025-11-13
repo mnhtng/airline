@@ -567,7 +567,7 @@ class ExcelBatchProcessor:
 
     def get_processing_summary(self) -> Dict[str, Any]:
         """
-        Lấy tóm tắt quá trình xử lý dữ liệu theo schema thực tế
+        Lấy tóm tắt quá trình xử lý dữ liệu theo schema thực tế (TOÀN BỘ DATABASE)
 
         Returns:
             Dict[str, Any]: Tóm tắt quá trình xử lý dữ liệu
@@ -621,6 +621,109 @@ class ExcelBatchProcessor:
 
         except Exception as e:
             logging.error(f"Lỗi lấy tóm tắt quá trình xử lý dữ liệu: {e}")
+            return {
+                "raw_records": 0,
+                "processed_records": 0,
+                "error_records": 0,
+                "missing_actypes": 0,
+                "missing_routes": 0,
+                "imported_files": 0,
+            }
+
+    def get_current_session_summary(self, source_files: List[str]) -> Dict[str, Any]:
+        """
+        Lấy tóm tắt quá trình xử lý CHỈ CHO BATCH HIỆN TẠI (filtered by source files)
+
+        Args:
+            source_files: Danh sách tên files đã xử lý trong session hiện tại
+
+        Returns:
+            Dict[str, Any]: Tóm tắt quá trình xử lý của batch hiện tại
+        """
+        try:
+            if not source_files:
+                return {
+                    "raw_records": 0,
+                    "processed_records": 0,
+                    "error_records": 0,
+                    "missing_actypes": 0,
+                    "missing_routes": 0,
+                    "imported_files": 0,
+                }
+
+            # Build IN clause for SQL query
+            files_placeholder = ", ".join([f":file_{i}" for i in range(len(source_files))])
+            files_params = {f"file_{i}": file for i, file in enumerate(source_files)}
+
+            # Get records count from flight_raw for current batch
+            raw_count_result = self.db.execute(
+                text(f"SELECT COUNT(*) FROM flight_raw WHERE source IN ({files_placeholder})"),
+                files_params
+            ).fetchone()
+
+            # Get records count from flight_data_chot for current batch
+            processed_count_result = self.db.execute(
+                text(f"SELECT COUNT(*) FROM flight_data_chot WHERE source IN ({files_placeholder})"),
+                files_params
+            ).fetchone()
+
+            # Get records count from error_table for current batch
+            error_count_result = self.db.execute(
+                text(f"SELECT COUNT(*) FROM error_table WHERE source IN ({files_placeholder})"),
+                files_params
+            ).fetchone()
+
+            # Get missing actypes from Missing_Dimensions_Log for current batch
+            # Note: Missing_Dimensions_Log có thể không có source column, 
+            # nên ta lấy từ error_table của batch hiện tại
+            missing_actype_result = self.db.execute(
+                text(f"""
+                    SELECT COUNT(DISTINCT actype) 
+                    FROM error_table 
+                    WHERE source IN ({files_placeholder})
+                    AND Is_InvalidActypeSeat = 1
+                    AND actype IS NOT NULL
+                """),
+                files_params
+            ).fetchone()
+
+            # Get missing routes from error_table for current batch
+            missing_route_result = self.db.execute(
+                text(f"""
+                    SELECT COUNT(DISTINCT route) 
+                    FROM error_table 
+                    WHERE source IN ({files_placeholder})
+                    AND Is_InvalidRoute = 1
+                    AND route IS NOT NULL
+                """),
+                files_params
+            ).fetchone()
+
+            # Get imported files count for current batch
+            imported_files_result = self.db.execute(
+                text(f"SELECT COUNT(*) FROM import_log WHERE file_name IN ({files_placeholder})"),
+                files_params
+            ).fetchone()
+
+            return {
+                "raw_records": raw_count_result[0] if raw_count_result else 0,
+                "processed_records": (
+                    processed_count_result[0] if processed_count_result else 0
+                ),
+                "error_records": error_count_result[0] if error_count_result else 0,
+                "missing_actypes": (
+                    missing_actype_result[0] if missing_actype_result else 0
+                ),
+                "missing_routes": (
+                    missing_route_result[0] if missing_route_result else 0
+                ),
+                "imported_files": (
+                    imported_files_result[0] if imported_files_result else 0
+                ),
+            }
+
+        except Exception as e:
+            logging.error(f"Lỗi lấy tóm tắt batch hiện tại: {e}")
             return {
                 "raw_records": 0,
                 "processed_records": 0,
