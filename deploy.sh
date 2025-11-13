@@ -10,7 +10,7 @@ git pull origin main
 echo "🐍 Updating backend..."
 cd backend
 source .venv/bin/activate
-pip install -r requirements.txt --upgrade
+pip install -r requirements.txt
 deactivate
 cd ..
 

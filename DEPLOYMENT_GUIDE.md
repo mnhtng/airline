@@ -107,6 +107,9 @@ sudo docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
 # Verify it's running
 sudo docker ps
 
+# Drop database
+sudo docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -Q "DROP DATABASE IF EXISTS flight;"
+
 # Create database using sqlcmd
 docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -Q "CREATE DATABASE flight;"
 
@@ -562,9 +565,68 @@ sudo systemctl restart nginx
 
 ---
 
-## 🔄 Bước 9: Update Code Khi Có Thay Đổi
+## 🔄 Bước 9: Update Code & Xử Lý Conflict
 
-### 9.1. Script tự động update
+### 9.1. Pull code cơ bản
+
+```bash
+cd /var/www/airline
+
+# Kiểm tra trạng thái
+git status
+
+# Pull code mới
+git pull origin main
+```
+
+### 9.2. Pull khi có thay đổi local
+
+```bash
+# Cách 1: Stash (khuyến nghị)
+git stash
+git pull origin main
+git stash pop
+
+# Cách 2: Commit trước
+git add .
+git commit -m "Local changes"
+git pull origin main
+```
+
+### 9.3. Xử lý conflict
+
+**Khi có conflict:**
+
+```bash
+# Xem files bị conflict
+git status
+
+# Xem chi tiết conflict
+git diff <file>
+
+# Chọn version remote (khuyến nghị cho deployment)
+git checkout --theirs <file>
+git add <file>
+
+# Hoặc chọn version local
+git checkout --ours <file>
+git add <file>
+
+# Hoặc sửa thủ công và mark resolved
+nano <file>  # Xóa các dòng <<<<<<, =======, >>>>>>>
+git add <file>
+
+# Hoàn tất merge
+git commit -m "Resolved merge conflicts"
+```
+
+**Hủy merge nếu cần:**
+
+```bash
+git merge --abort
+```
+
+### 9.4. Script tự động update
 
 Tạo file `deploy.sh`:
 

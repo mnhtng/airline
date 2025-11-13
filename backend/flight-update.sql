@@ -1,3 +1,6 @@
+USE [flight];
+GO
+
 -- Drop old tables
 DROP TABLE IF EXISTS Country_Ref;
 DROP TABLE IF EXISTS Dim_Country_Ref;
@@ -291,8 +294,6 @@ VALUES
     (SYSDATETIME(), SYSDATETIME()),
     (SYSDATETIME(), SYSDATETIME());
 GO
-
-TRUNCATE TABLE Dim_Country_Ref;
 
 
 CREATE TABLE Airline_Ref
@@ -1027,8 +1028,6 @@ VALUES
     (SYSDATETIME(), SYSDATETIME()),
     (SYSDATETIME(), SYSDATETIME());
 GO
-
-TRUNCATE TABLE Dim_Airline_Ref;
 
 
 CREATE TABLE Airport_Ref
@@ -6376,8 +6375,6 @@ VALUES
     (SYSDATETIME(), SYSDATETIME());
 GO
 
-TRUNCATE TABLE Dim_Airport_Ref;
-
 
 CREATE TABLE Sector_Route_DOM_Ref
 (
@@ -6573,5 +6570,3 @@ VALUES
     (SYSDATETIME(), SYSDATETIME()),
     (SYSDATETIME(), SYSDATETIME());
 GO
-
-TRUNCATE TABLE Dim_Sector_Route_DOM_Ref;
