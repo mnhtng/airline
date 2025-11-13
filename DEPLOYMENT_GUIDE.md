@@ -276,6 +276,9 @@ sudo systemctl enable airline-backend
 # Start service
 sudo systemctl start airline-backend
 
+# Stop backend để ngắt connections
+sudo systemctl stop airline-backend
+
 # Check status
 sudo systemctl status airline-backend
 
@@ -683,6 +686,28 @@ chmod +x deploy.sh
 ```bash
 cd /var/www/airline
 ./deploy.sh
+```
+
+### 9.5. Nếu muốn xóa database
+
+```bash
+# Stop backend để ngắt connections
+sudo systemctl stop airline-backend
+
+# Drop database
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P "tunghpvn123" -C \
+  -Q "DROP DATABASE flight;"
+
+# Recreate database
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P "tunghpvn123" -C \
+  -Q "CREATE DATABASE flight;"
+
+# Run scripts...
+
+# Start backend lại
+sudo systemctl start airline-backend
 ```
 
 ---

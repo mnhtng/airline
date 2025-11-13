@@ -1,6 +1,21 @@
 USE [flight];
 GO
 
+INSERT INTO TempActypeImport
+    (Actype)
+VALUES
+    ('A320'),
+    ('B777'),
+    ('A380'),
+    ('B747'),
+    ('B737'),
+    ('A330'),
+    ('B787'),
+    ('A321'),
+    ('B777-300'),
+    ('A350');
+GO
+
 -- Drop old tables
 DROP TABLE IF EXISTS Country_Ref;
 DROP TABLE IF EXISTS Dim_Country_Ref;
