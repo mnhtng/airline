@@ -393,7 +393,7 @@ const wb = XLSX.utils.book_new()
 XLSX.utils.book_append_sheet(wb, ws, "Flight Report")
 
 // Generate filename based on date range
-const fileName = `flight_report_${format(startDate, "dd-MM-yyyy")}_to_${format(endDate, "dd-MM-yyyy")}.xlsx`
+const fileName = `flight_report_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}.xlsx`
 
 XLSX.writeFile(wb, fileName)
 ```

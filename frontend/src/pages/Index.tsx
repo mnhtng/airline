@@ -56,9 +56,9 @@ interface ProcessResult {
     }
 }
 
+//! ===== UPDATE HERE =====
 interface FlightExportData {
-    area: string
-    convert_date: string
+    flightdate: string
     flightno: string
     route: string
     actype: string
@@ -82,7 +82,6 @@ interface FlightExportData {
     country_arrives: string
     country_code: string
     area_code: string
-    flight_type: number | string
 }
 
 interface ExportFlightDataResponse {
@@ -421,16 +420,16 @@ const Index = () => {
                 let description = result.message
 
                 if (result.processed_files && result.total_rows) {
-                    description += `\n📊 Đã xử lý: ${result.processed_files} file với ${result.total_rows} bản ghi`
+                    description += `\n📊 Processed: ${result.processed_files} file với ${result.total_rows} bản ghi`
                 }
 
                 if (result.skipped_files && result.skipped_files > 0) {
-                    description += `\n⏭️ Đã bỏ qua: ${result.skipped_files} file đã import trước đó`
+                    description += `\n⏭️ Skipped: ${result.skipped_files} file đã import trước đó`
                 }
 
                 if (result.processing_summary) {
                     const summary = result.processing_summary
-                    description += `\n✅ Processed: ${summary.processed_records} records`
+                    description += `\n✅ Passed: ${summary.processed_records} records`
                     if (summary.error_records > 0) {
                         description += `\n❌ Errors: ${summary.error_records} records`
                     }
@@ -595,10 +594,10 @@ const Index = () => {
 
             // Export to Excel
             const XLSX = await import("xlsx")
+            //! ===== UPDATE HERE =====
             const excelData = result.data.map((flight: FlightExportData, index: number) => ({
                 STT: index + 1,
-                "Area": flight.area || "",
-                "Convert Date": flight.convert_date || "",
+                "Flight Date": flight.flightdate || "",
                 "Flight No": flight.flightno || "",
                 "Route": flight.route || "",
                 "Aircraft Type": flight.actype || "",
@@ -622,7 +621,6 @@ const Index = () => {
                 "Country Arrives": flight.country_arrives || "",
                 "Country Code": flight.country_code || "",
                 "Area Code": flight.area_code || "",
-                "Flight Type": flight.flight_type !== "" ? flight.flight_type : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
@@ -637,9 +635,9 @@ const Index = () => {
             // Generate filename based on date range
             let fileName: string
             if ((endDate.getTime() - startDate.getTime()) <= 24 * 60 * 60 * 1000) {
-                fileName = `flight_report_${format(startDate, "dd-MM-yyyy")}.xlsx`
+                fileName = `flight_report_${format(startDate, "yyyy-MM-dd")}.xlsx`
             } else {
-                fileName = `flight_report_${format(startDate, "dd-MM-yyyy")}_to_${format(endDate, "dd-MM-yyyy")}.xlsx`
+                fileName = `flight_report_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}.xlsx`
             }
 
             XLSX.writeFile(wb, fileName)

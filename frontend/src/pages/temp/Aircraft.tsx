@@ -233,8 +233,8 @@ const DimAircraft = () => {
                 Index: aircraft.index,
                 "Aircraft Type": aircraft.actype,
                 Seats: aircraft.seat,
-                "Created At": format(new Date(aircraft.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": aircraft.updated_at ? format(new Date(aircraft.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+                "Created At": format(new Date(aircraft.created_at), "yyyy-MM-dd HH:mm:ss"),
+                "Updated At": aircraft.updated_at ? format(new Date(aircraft.updated_at), "yyyy-MM-dd HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
@@ -242,12 +242,12 @@ const DimAircraft = () => {
             XLSX.utils.book_append_sheet(wb, ws, "Aircrafts")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `aircrafts_${format(start, "yyyy-MM-dd")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `aircrafts_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `aircrafts_${format(start, "yyyy-MM-dd")}_to_${format(end, "yyyy-MM-dd")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }

@@ -103,15 +103,25 @@ sleep 10
 sudo docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
   -S localhost -U sa -P "tunghpvn123" \
   -Q "CREATE DATABASE flight;"
+# === Use the new sqlcmd path (SQL Server 2022+) ===
+sudo docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Hieu11082000" -C -Q "CREATE DATABASE flight;"
 
 # Verify it's running
 sudo docker ps
 
+# Check which sqlcmd is available
+sudo docker exec sqlserver find /opt -name sqlcmd
+
 # Drop database
 sudo docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -Q "DROP DATABASE IF EXISTS flight;"
+# === Or ===
+sudo docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Hieu11082000" -C -Q "ALTER DATABASE flight SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE flight;"
 
 # Create database using sqlcmd
 docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -Q "CREATE DATABASE flight;"
+
+# Run query
+docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "tunghpvn123" -C -d flight -Q "SELECT TOP 10 * FROM AirlineDetails;"
 
 # Run SQL scripts - Option 1: Pipe từ host (khuyến nghị)
 echo "Running flight-raw.sql..."
@@ -262,6 +272,26 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
+#### Nếu nơi chứa project không ở `/var/www/` mà phải `cd` ở terminal để lấy đường dẫn tuyệt đối ~
+
+```ini
+[Unit]
+Description=VPS FastAPI Backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/VPS-rental/backend
+Environment="PATH=/root/VPS-rental/backend/.venv/bin"
+ExecStart=/root/VPS-rental/backend/.venv/bin/fastapi run main.py --host 0.0.0.0 --port 8000 --workers 4
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
 **Thay `YOUR_USERNAME`** bằng username Linux của bạn (chạy `whoami` để xem).
 
 ### 4.2. Enable và start service
@@ -334,6 +364,9 @@ npm --version
 
 ```bash
 npm install -g pm2
+
+pm2 start npm --name "nextjs-frontend" -- run dev
+pm2 save
 
 # Enable PM2 startup
 pm2 startup

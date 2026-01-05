@@ -231,8 +231,8 @@ const DimSectorRoute = () => {
                 "Sector": sectorRouteDom.sector,
                 "Area Lv1": sectorRouteDom.area_lv1,
                 "Dom/Int": sectorRouteDom.dom_int,
-                "Created At": format(new Date(sectorRouteDom.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": sectorRouteDom.updated_at ? format(new Date(sectorRouteDom.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+                "Created At": format(new Date(sectorRouteDom.created_at), "yyyy-MM-dd HH:mm:ss"),
+                "Updated At": sectorRouteDom.updated_at ? format(new Date(sectorRouteDom.updated_at), "yyyy-MM-dd HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
@@ -240,12 +240,12 @@ const DimSectorRoute = () => {
             XLSX.utils.book_append_sheet(wb, ws, "Sector Route DOMs")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `sector_route_doms_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `sector_route_doms_${format(start, "yyyy-MM-dd")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `sector_route_doms_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `sector_route_doms_${format(start, "yyyy-MM-dd")}_to_${format(end, "yyyy-MM-dd")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }

@@ -28,8 +28,6 @@ class ActypeSeatBase(BaseModel):
         """Validate seat count"""
         if v <= 0:
             raise ValueError("Số ghế phải lớn hơn 0")
-        if v > 1000:
-            raise ValueError("Số ghế không được vượt quá 1000")
         return v
 
 
@@ -60,8 +58,6 @@ class ActypeSeatUpdate(BaseModel):
         if v is not None:
             if v <= 0:
                 raise ValueError("Số ghế phải lớn hơn 0")
-            if v > 1000:
-                raise ValueError("Số ghế không được vượt quá 1000")
         return v
 
 

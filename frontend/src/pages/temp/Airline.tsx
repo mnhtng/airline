@@ -232,8 +232,8 @@ const DimAirline = () => {
                 "Carrier": airline.carrier,
                 "Airline Nation": airline.airline_nation,
                 "Airlines Name": airline.airlines_name,
-                "Created At": format(new Date(airline.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Updated At": airline.updated_at ? format(new Date(airline.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+                "Created At": format(new Date(airline.created_at), "yyyy-MM-dd HH:mm:ss"),
+                "Updated At": airline.updated_at ? format(new Date(airline.updated_at), "yyyy-MM-dd HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
@@ -241,12 +241,12 @@ const DimAirline = () => {
             XLSX.utils.book_append_sheet(wb, ws, "Airlines")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `airlines_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `airlines_${format(start, "yyyy-MM-dd")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `airlines_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `airlines_${format(start, "yyyy-MM-dd")}_to_${format(end, "yyyy-MM-dd")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }

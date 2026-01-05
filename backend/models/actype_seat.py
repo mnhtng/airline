@@ -19,6 +19,7 @@ class ActypeSeat(Base):
     """
 
     __tablename__ = "actype_seat"
+    __table_args__ = {"implicit_returning": False}
 
     index = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     actype = Column(

@@ -158,8 +158,8 @@ const Airport = () => {
                 "Tên Sân Bay": airport.airport_name,
                 "Thành Phố": airport.city,
                 "Quốc Gia": airport.country,
-                "Ngày Tạo": format(new Date(airport.created_at), "dd-MM-yyyy HH:mm:ss"),
-                "Ngày Cập Nhật": airport.updated_at ? format(new Date(airport.updated_at), "dd-MM-yyyy HH:mm:ss") : "",
+                "Ngày Tạo": format(new Date(airport.created_at), "yyyy-MM-dd HH:mm:ss"),
+                "Ngày Cập Nhật": airport.updated_at ? format(new Date(airport.updated_at), "yyyy-MM-dd HH:mm:ss") : "",
             }))
 
             const ws = XLSX.utils.json_to_sheet(excelData)
@@ -167,12 +167,12 @@ const Airport = () => {
             XLSX.utils.book_append_sheet(wb, ws, "Airports")
 
             if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `airports_${format(start, "dd-MM-yyyy")}.xlsx`
+                const fileName = `airports_${format(start, "yyyy-MM-dd")}.xlsx`
                 XLSX.writeFile(wb, fileName)
                 return
             }
 
-            const fileName = `airports_${format(start, "dd-MM-yyyy")}_to_${format(end, "dd-MM-yyyy")}.xlsx`
+            const fileName = `airports_${format(start, "yyyy-MM-dd")}_to_${format(end, "yyyy-MM-dd")}.xlsx`
             XLSX.writeFile(wb, fileName)
         })
     }

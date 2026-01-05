@@ -660,16 +660,16 @@ if (result.success) {
     let description = result.message
 
     if (result.processed_files && result.total_rows) {
-        description += `\n📊 Đã xử lý: ${result.processed_files} file với ${result.total_rows} bản ghi`
+        description += `\n📊 Processed: ${result.processed_files} file với ${result.total_rows} records`
     }
 
     if (result.skipped_files && result.skipped_files > 0) {
-        description += `\n⏭️ Đã bỏ qua: ${result.skipped_files} file đã import trước đó`
+        description += `\n⏭️ Skipped: ${result.skipped_files} file đã import trước đó`
     }
 
     if (result.processing_summary) {
         const summary = result.processing_summary
-        description += `\n✅ Processed: ${summary.processed_records} records`
+        description += `\n✅ Passed: ${summary.processed_records} records`
         if (summary.error_records > 0) {
             description += `\n❌ Errors: ${summary.error_records} records`
         }

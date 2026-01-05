@@ -509,18 +509,46 @@ class ExcelBatchProcessor:
         """
 
         try:
+            # Filter: chỉ lưu các row có flightno và actype không null
+            filtered_df = df[df["flightno"].notna() & df["actype"].notna()][
+                [
+                    "flightdate",
+                    "flightno",
+                    "route",
+                    "actype",
+                    "seat",
+                    "adl",
+                    "chd",
+                    "cgo",
+                    "mail",
+                    "totalpax",
+                    "source",
+                    "acregno",
+                    "sheet_name",
+                ]
+            ]
+
             # Convert DataFrame to SQL
-            df.to_sql(
+            filtered_df.to_sql(
                 "flight_raw",
                 con=self.db.bind,
                 if_exists="append",
                 index=False,
                 dtype={
-                    "source": UnicodeText(255),
-                    "sheet_name": UnicodeText(255),
-                    "flightdate": UnicodeText(255),
+                    "source": UnicodeText(),
+                    "sheet_name": UnicodeText(),
+                    "flightdate": UnicodeText(),
                 },
             )
+
+            # Log số lượng rows đã lọc
+            original_count = len(df)
+            filtered_count = len(filtered_df)
+            if original_count > filtered_count:
+                logging.info(
+                    f"📊 Đã lọc {original_count - filtered_count} rows thiếu flightno/actype"
+                )
+
         except Exception as e:
             logging.error(f"Lỗi lưu vào database: {e}")
             raise e
@@ -652,57 +680,71 @@ class ExcelBatchProcessor:
                 }
 
             # Build IN clause for SQL query
-            files_placeholder = ", ".join([f":file_{i}" for i in range(len(source_files))])
+            files_placeholder = ", ".join(
+                [f":file_{i}" for i in range(len(source_files))]
+            )
             files_params = {f"file_{i}": file for i, file in enumerate(source_files)}
 
             # Get records count from flight_raw for current batch
             raw_count_result = self.db.execute(
-                text(f"SELECT COUNT(*) FROM flight_raw WHERE source IN ({files_placeholder})"),
-                files_params
+                text(
+                    f"SELECT COUNT(*) FROM flight_raw WHERE source IN ({files_placeholder})"
+                ),
+                files_params,
             ).fetchone()
 
             # Get records count from flight_data_chot for current batch
             processed_count_result = self.db.execute(
-                text(f"SELECT COUNT(*) FROM flight_data_chot WHERE source IN ({files_placeholder})"),
-                files_params
+                text(
+                    f"SELECT COUNT(*) FROM flight_data_chot WHERE source IN ({files_placeholder})"
+                ),
+                files_params,
             ).fetchone()
 
             # Get records count from error_table for current batch
             error_count_result = self.db.execute(
-                text(f"SELECT COUNT(*) FROM error_table WHERE source IN ({files_placeholder})"),
-                files_params
+                text(
+                    f"SELECT COUNT(*) FROM error_table WHERE source IN ({files_placeholder})"
+                ),
+                files_params,
             ).fetchone()
 
             # Get missing actypes from Missing_Dimensions_Log for current batch
-            # Note: Missing_Dimensions_Log có thể không có source column, 
+            # Note: Missing_Dimensions_Log có thể không có source column,
             # nên ta lấy từ error_table của batch hiện tại
             missing_actype_result = self.db.execute(
-                text(f"""
+                text(
+                    f"""
                     SELECT COUNT(DISTINCT actype) 
                     FROM error_table 
                     WHERE source IN ({files_placeholder})
                     AND Is_InvalidActypeSeat = 1
                     AND actype IS NOT NULL
-                """),
-                files_params
+                """
+                ),
+                files_params,
             ).fetchone()
 
             # Get missing routes from error_table for current batch
             missing_route_result = self.db.execute(
-                text(f"""
+                text(
+                    f"""
                     SELECT COUNT(DISTINCT route) 
                     FROM error_table 
                     WHERE source IN ({files_placeholder})
                     AND Is_InvalidRoute = 1
                     AND route IS NOT NULL
-                """),
-                files_params
+                """
+                ),
+                files_params,
             ).fetchone()
 
             # Get imported files count for current batch
             imported_files_result = self.db.execute(
-                text(f"SELECT COUNT(*) FROM import_log WHERE file_name IN ({files_placeholder})"),
-                files_params
+                text(
+                    f"SELECT COUNT(*) FROM import_log WHERE file_name IN ({files_placeholder})"
+                ),
+                files_params,
             ).fetchone()
 
             return {

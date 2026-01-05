@@ -29,8 +29,6 @@ class TempActypeImportBase(BaseModel):
         if v is not None:
             if v < 0:
                 raise ValueError("Số ghế không được âm")
-            if v > 1000:
-                raise ValueError("Số ghế không được vượt quá 1000")
         return v
 
 
@@ -50,8 +48,6 @@ class TempActypeImportUpdate(BaseModel):
         if v is not None:
             if v < 0:
                 raise ValueError("Số ghế không được âm")
-            if v > 1000:
-                raise ValueError("Số ghế không được vượt quá 1000")
         return v
 
 
