@@ -3,42 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
     ArrowLeft,
-    FolderDown,
     Sparkles,
-    CalendarIcon,
-    Plus
+    Plus,
+    FolderUp
 } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
 import Loading from "@/components/Loading"
 import ErrorBanner from "@/components/errorBanner"
-import {
-    CalendarCell,
-    CalendarGrid,
-    CalendarGridBody,
-    CalendarGridHeader,
-    CalendarHeaderCell,
-    CalendarHeading,
-    RangeCalendar,
-} from "@/components/ui/calendar"
-import {
-    DatePickerContent,
-    DateRangePicker,
-} from "@/components/ui/date-range-picker"
-import { DateInput } from "@/components/ui/datefield"
-import { FieldGroup } from "@/components/ui/field"
-import { AsiaButton } from "@/components/ui/asia-button"
-import { format } from "date-fns"
-
-
-interface AirlineProps {
-    id: number
-    carrier: string
-    airline_nation: string
-    airlines_name: string
-    created_at: string
-    updated_at: string
-}
+import { Label } from "@/components/ui/label"
 
 interface AirlineDraftProps {
     id: number
@@ -53,26 +26,9 @@ const DimAirline = () => {
     const navigate = useNavigate()
 
     const [data, setData] = useState<AirlineDraftProps[]>([])
-    const [exportData, setExportData] = useState<AirlineProps[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [edit, setEdit] = useState<boolean>(false)
-
-    async function getAirlines() {
-        setLoading(true)
-
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/airlines`)
-            const result = await response.json()
-
-            setExportData(result)
-            setError(null)
-        } catch (error) {
-            setError("Tải dữ liệu thất bại!")
-        } finally {
-            setLoading(false)
-        }
-    }
 
     async function getAirlineDrafts() {
         setLoading(true)
@@ -92,7 +48,6 @@ const DimAirline = () => {
 
     useEffect(() => {
         getAirlineDrafts()
-        getAirlines()
     }, [])
 
     const updateRow = (id: number, field: keyof AirlineDraftProps, value: string | number) => {
@@ -194,61 +149,32 @@ const DimAirline = () => {
         }
     }
 
-    const handleExport = () => {
-        const hiddenInputs = document.querySelectorAll('input.react-aria-Input[hidden][type="text"]');
+    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
 
-        const startValue = (hiddenInputs[0] as HTMLInputElement)?.value || null
-        const endValue = (hiddenInputs[1] as HTMLInputElement)?.value || null
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+            const XLSX = await import("xlsx")
+            const data = new Uint8Array(event.target?.result as ArrayBuffer)
+            const workbook = XLSX.read(data, { type: 'array' })
+            const sheetName = workbook.SheetNames[0]
+            const worksheet = workbook.Sheets[sheetName]
+            const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
-        if (!startValue || !endValue) {
-            toast.error("Vui lòng chọn khoảng thời gian để xuất dữ liệu!", {
-                description: "Chọn ngày bắt đầu và ngày kết thúc."
+            const airlines = json.slice(1).map((row: any, index: number) => {
+                return {
+                    id: index + 1,
+                    carrier: row[1],
+                    airlines_name: row[2],
+                    airline_nation: row[3],
+                }
             })
-            return
+
+            setData(airlines)
+            setEdit(true)
         }
-
-        const start = new Date(startValue)
-        const end = new Date(endValue)
-
-        // Set giờ về 00:00:00.000 cho start và 23:59:59.999 cho end để bao gồm toàn bộ ngày
-        start.setHours(0, 0, 0, 0)
-        end.setHours(23, 59, 59, 999)
-
-        const filteredData = exportData.filter(airline => {
-            const updateDate = airline.updated_at ? new Date(airline.updated_at) : new Date(airline.created_at);
-            return updateDate >= start && updateDate <= end;
-        })
-
-        if (filteredData.length === 0) {
-            toast.warning("Không có dữ liệu trong khoảng thời gian đã chọn!", {
-                description: "Vui lòng chọn khoảng thời gian khác."
-            })
-            return
-        }
-
-        import("xlsx").then((XLSX) => {
-            const excelData = filteredData.map(airline => ({
-                Id: airline.id,
-                "Carrier": airline.carrier,
-                "Airline Nation": airline.airline_nation,
-                "Airlines Name": airline.airlines_name,
-                "Created At": format(new Date(airline.created_at), "yyyy-MM-dd HH:mm:ss"),
-                "Updated At": airline.updated_at ? format(new Date(airline.updated_at), "yyyy-MM-dd HH:mm:ss") : "",
-            }))
-
-            const ws = XLSX.utils.json_to_sheet(excelData)
-            const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, "Airlines")
-
-            if ((end.getTime() - start.getTime()) <= 24 * 60 * 60 * 1000) {
-                const fileName = `airlines_${format(start, "yyyy-MM-dd")}.xlsx`
-                XLSX.writeFile(wb, fileName)
-                return
-            }
-
-            const fileName = `airlines_${format(start, "yyyy-MM-dd")}_to_${format(end, "yyyy-MM-dd")}.xlsx`
-            XLSX.writeFile(wb, fileName)
-        })
+        reader.readAsArrayBuffer(file)
     }
 
     return (
@@ -266,46 +192,19 @@ const DimAirline = () => {
                         Quay Lại
                     </Button>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full md:w-auto">
-                        <DateRangePicker className="min-w-[300px] space-y-1">
-                            <FieldGroup>
-                                <DateInput variant="ghost" slot={"start"} />
-                                <span aria-hidden className="px-2 text-sm text-muted-foreground">
-                                    -
-                                </span>
-                                <DateInput className="flex-1" variant="ghost" slot={"end"} />
-
-                                <AsiaButton
-                                    variant="ghost"
-                                    size="icon"
-                                    className="mr-1 size-6 data-[focus-visible]:ring-offset-0"
-                                >
-                                    <CalendarIcon aria-hidden className="size-4" />
-                                </AsiaButton>
-                            </FieldGroup>
-
-                            <DatePickerContent>
-                                <RangeCalendar>
-                                    <CalendarHeading />
-                                    <CalendarGrid>
-                                        <CalendarGridHeader>
-                                            {(day) => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
-                                        </CalendarGridHeader>
-                                        <CalendarGridBody>
-                                            {(date) => <CalendarCell date={date} />}
-                                        </CalendarGridBody>
-                                    </CalendarGrid>
-                                </RangeCalendar>
-                            </DatePickerContent>
-                        </DateRangePicker>
-
-                        <Button
-                            variant="ghost"
-                            onClick={handleExport}
-                        >
-                            <FolderDown />
-                            <span>Export</span>
-                        </Button>
+                    <div>
+                        <Label htmlFor="import-file" className="flex items-center gap-2 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all duration-200 rounded-xl px-4 py-2 cursor-pointer">
+                            <FolderUp />
+                            <span>Import</span>
+                        </Label>
+                        <Input
+                            id="import-file"
+                            name="import-file"
+                            type="file"
+                            onChange={handleImport}
+                            accept=".xlsx,.xls,.csv"
+                            className="hidden"
+                        />
                     </div>
                 </div>
 

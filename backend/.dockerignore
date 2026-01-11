@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.eggs/
+*.egg-info/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Jupyter Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# SQL Files (không cần trong production)
+*.sql
+
+# Documentation
+*.md
+!README.md
+
+# Lock files (sử dụng requirements.txt)
+uv.lock
+poetry.lock
+
+# Logs
+logs/
+*.log
+
+# Uploads (sẽ dùng volume mount)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Choreo/Vercel config
+.choreo/
+vercel.json
+Procfile

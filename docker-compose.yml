@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # Airline API Backend
+  # ===========================================
+  airline-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: production
+    container_name: airline-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database connection (SQL Server)
+      - DATABASE_URL=${DATABASE_URL}
+      # API Settings
+      - API_PREFIX=/api/v1
+      - DEBUG=False
+      # CORS
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      # OpenAI (for LangChain)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      # Persist logs and uploads
+      - ./backend/logs:/app/logs
+      - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - airline-network
+  # ===========================================
+  # SQL Server (Optional - for local development)
+  # ===========================================
+  # Uncomment if you want to run SQL Server locally
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: airline-mssql
+  #   restart: unless-stopped
+  #   ports:
+  #     - "1433:1433"
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - SA_PASSWORD=${SA_PASSWORD:-YourStrong@Passw0rd}
+  #     - MSSQL_PID=Express
+  #   volumes:
+  #     - mssql-data:/var/opt/mssql
+  #   networks:
+  #     - airline-network
+
+networks:
+  airline-network:
+    driver: bridge
+
+# volumes:
+#   mssql-data:
